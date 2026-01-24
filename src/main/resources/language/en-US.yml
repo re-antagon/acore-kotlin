@@ -1,5 +1,5 @@
 console-prefix: "[acore] :"
-prefix: "<#c38154>[<#ffc26f>acore<#ffc26f>]<#c38154> <gray>:"
+prefix: "<#c38154>[<#ffc26f>acore</#ffc26f>]</#c38154> <gray>:</gray>"
 
 # In-game messages
 help: "
@@ -13,10 +13,13 @@ wrong-argument: "<red>wrong argument in provided command</red>"
 
 # Debug and other console information
 loading-start: "is loading.."
-loading-success: "succesfully loaded"
+loading-success: "successfully loaded"
 loading-error: "oops! Something went wrong!"
-fire-burning-prevented: "<#ffc26f>Fire burning has been prevented near block at: <#ffc26f>${block.location}"
-## you can leave this "" to disable
+# Placeholders: {block.location}
+fire-burning-prevented: "<#ffc26f>Fire burning has been prevented near block at: <#ffc26f>{block.location}"
+
+# Some meme shit
+# You can leave this "" to disable
 startup-ascii: "
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣤⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿⠿⠓⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
