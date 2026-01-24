@@ -1,11 +1,12 @@
 name: acore
-version: '1.0'
-main: org.antagon.acore.Acore
-api-version: '1.21'
-load: STARTUP
 authors: [ bloodysupport, nonxedy ]
+main: org.antagon.acore.Acore
 description: Multi-purpose plugin for Antagon:Reborn server
+version: '1.0'
+prefix: acore
+api-version: '1.21'
 website: https://reborn.antagon.su
+load: STARTUP
 
 depend: [LuckPerms]
 softdepend: [ConditionalEvents, MythicMobs]
@@ -29,14 +30,6 @@ commands:
     permission: acore.link
 
 permissions:
-  permission.admin:
-    description: Permission for admin commands
-    default: op
-    children:
-      - acore.showinfo
-      - acore.schvapchichi
-      - acore.a_schvapchichi
-      - acore.link
   acore.showinfo:
     description: Permission for showinfo command
     default: true
@@ -49,3 +42,11 @@ permissions:
   acore.link:
     description: Permission for link command
     default: true
+  permission.admin:
+    description: Permission for admin commands
+    default: op
+    children:
+      - acore.showinfo
+      - acore.schvapchichi
+      - acore.a_schvapchichi
+      - acore.link
