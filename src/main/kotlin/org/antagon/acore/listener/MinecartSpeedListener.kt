@@ -53,7 +53,7 @@ class MinecartSpeedListener : Listener {
         for (key in blockTypes.getKeys(false)) {
             try {
                 val blockType = MaterialValidator.validateMaterial(key)
-                validBlocks[key] = blockTypes.getDouble(key)
+                validBlocks[blockType] = blockTypes.getDouble(key)
             } catch (e: IllegalArgumentException) {
                 logger.warning("Invalid material in block-types: $key. ${e.message}")
             }
@@ -68,7 +68,7 @@ class MinecartSpeedListener : Listener {
         for (key in railTypes.getKeys(false)) {
             try {
                 val railType = MaterialValidator.validateMaterial(key)
-                validRails[key] = railTypes.getDouble(key)
+                validRails[railType] = railTypes.getDouble(key)
             } catch (e: IllegalArgumentException) {
                 logger.warning("Invalid material in rail-types: $key. ${e.message}")
             }

@@ -74,8 +74,8 @@ class ConfigManager private constructor(
         return this.config
     }
 
-    override fun getString(path: String): String? {
-        return config.getString(path)
+    override fun getString(path: String): String {
+        return config.getString(path) ?: ""
     }
 
     override fun getString(path: String, defaultValue: String): String {

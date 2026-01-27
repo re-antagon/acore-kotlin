@@ -5,6 +5,7 @@ import io.lumine.mythic.bukkit.MythicBukkit
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.Player
+import org.bukkit.event.Event
 import org.bukkit.inventory.ItemStack
 
 class DropMythicItem : ConditionalEventsAction() {
@@ -13,7 +14,7 @@ class DropMythicItem : ConditionalEventsAction() {
         super("drop_mythic_item")
     }
 
-    override fun execute(player: Player, actionLine: String) {
+    override fun execute(player: Player, actionLine: String, event: Event) {
         // Format: drop_mythic_item:<item_id>;<amount>;<world>;<x>;<y>;<z>
         val args = actionLine.split(";")
 

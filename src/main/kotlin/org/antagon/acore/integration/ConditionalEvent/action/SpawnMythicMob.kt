@@ -5,6 +5,7 @@ import io.lumine.mythic.bukkit.MythicBukkit
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.Player
+import org.bukkit.event.Event
 
 class SpawnMythicMob : ConditionalEventsAction() {
 
@@ -12,7 +13,7 @@ class SpawnMythicMob : ConditionalEventsAction() {
         super("spawn_mythic_mob")
     }
 
-    override fun execute(player: Player, s: String) {
+    override fun execute(player: Player, s: String, event: Event) {
         // Format: spawn_mythic_mob: <mythic_mob_type>;<world>;<x>;<y>;<z>;<amount>
         val sep = s.split(";")
 

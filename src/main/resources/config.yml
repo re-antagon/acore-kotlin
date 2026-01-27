@@ -1,18 +1,46 @@
-# Don't touch this manually
-version: 0
+# You don't want to touch this
+version: 1
 
 # Select language from "languages" folder, you can add your by creating new file
 language: en-US
 
-# qol feature which increase minecart speed and add minecart damage
-betterMinecarts:
+# Villager transportation feature - allows moving villagers with camels and llamas
+villagerTransport:
+  enabled: true
+  # Detection range for finding villagers to transport
+  detectionRange: 3
+  # Teleport villager to player when dismounting
+  teleportOnDismount: true
+  # Camel transportation settings
+  camel:
+    enabled: true
+  # Llama transportation settings
+  llama:
+    enabled: true
+
+# make item frame invisible using shears
+invisibleItemFrames:
+  enabled: true
+  # Whether to make the item frame visible again when right-clicked with shears while invisible
+  toggleable: true
+
+
+# new minecart mechanic which makes minecarts deal damage while interact with other entities on high speed
+minecartDamage:
   enabled: true
   # Which minecart types should apply these features
   minecart-types: [MINECART]
-  # Amount * current minecart speed (0.2 is 1)
+  # Amount * current minecart speed (0.2 minecart speed is 1)
   damage-amount: 1
-  # Minimum minecart speed
+  # Minimum minecart speed to damage entity
   speed-threshold: 0.4
+# qol feature which increase minecart speed
+minecartSpeed:
+  enabled: true
+  # This value makes speed increase/decrease more smoothly where 0 = instantly, 10 = never
+  smooth-factor: 5
+  # Which minecart types should apply these features
+  minecart-types: [MINECART]
   # These values are multipliers for block-types
   rail-types:
     RAIL: 1.0
@@ -42,8 +70,10 @@ betterMinecarts:
 # Speed up / Slow down player speed, triggered on Sprint event and then checks every {tick-frequency} ticks
 betterRun:
   enabled: true
+  # This value makes speed increase/decrease more smoothly where 0 = instantly, 10 = never
+  smooth-factor: 5
   # Amount of ticks to wait before next check of player staying on right block
-  tick-frequency: 10
+  tick-frequency: 20
   block-types:
     DIRT_PATH: 0.025 # 0.2 default player speed + 0.025 = 112.5% from original speed
 # Convert blocks to another type if lightning hits it (in 1.5 radius which looks like +)
@@ -134,3 +164,39 @@ fireAdjustment:
       min-amount: 1
       max-amount: 3
       chance: 0.1
+
+# Banner head feature - allows players to wear banners on their head through inventory
+bannerHead:
+  enabled: true
+
+# Custom fog potion that shows last 3 players who interacted with blocks in radius
+fogPotion:
+  enabled: true
+  # Custom Model Data value that identifies the fog potion (set this in your resource pack/item configuration)
+  custom-model-data: 1201
+  # Radius in blocks to track player interactions
+  radius: 10
+  # Duration in seconds for how long to show the action bar message
+  display-duration: 10
+  # Cooldown in seconds between uses of the same potion in the same location
+  cooldown: 30
+
+# Швапчичи feature - cursed players will lose random items on rejoin
+schvapchichi:
+  enabled: true
+  # Curse settings - steal random item from inventory on rejoin
+  curse:
+    stealChance: 0.05  # 5% chance to steal an item
+    message: "&8Швапчичи забирает это..."
+
+# First join item feature - gives MythicMobs item to players on first join
+firstJoinItem:
+  enabled: true
+  # MythicMobs item internal name
+  mythicItemName: menu_book
+  # Custom model data for the item
+  customModelData: 1039
+
+# Referrals feature - allows players to invite others and get rewards
+referrals:
+  enabled: true
