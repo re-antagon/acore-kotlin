@@ -10,7 +10,7 @@ import org.bukkit.event.Event
 class SpawnMythicMob : ConditionalEventsAction() {
 
     init {
-        super("spawn_mythic_mob")
+        super("spawn_mythic_mob", null)
     }
 
     override fun execute(player: Player, s: String, event: Event) {

@@ -11,7 +11,7 @@ import org.bukkit.inventory.ItemStack
 class DropMythicItem : ConditionalEventsAction() {
 
     init {
-        super("drop_mythic_item")
+        super("drop_mythic_item", null)
     }
 
     override fun execute(player: Player, actionLine: String, event: Event) {
