@@ -27,6 +27,8 @@ dependencies {
     implementation("com.github.ajneb97:ConditionalEvents:4.65.1")    // Conditional Events api
     compileOnly("io.lumine:Mythic-Dist:5.9.5")                       // Mythic Mobs api
     compileOnly("net.luckperms:api:5.4")                             // LuckPerms api
+    implementation("net.kyori:adventure-api:4.26.1")                 // Adventure API
+    implementation("net.kyori:adventure-text-minimessage:4.26.1")    // Adventure Text MiniMessage
 }
 
 tasks.processResources {
