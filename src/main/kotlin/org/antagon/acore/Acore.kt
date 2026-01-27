@@ -34,10 +34,6 @@ class Acore : JavaPlugin() {
         registerListeners()
 
         logger.info("Acore plugin has been enabled successfully!")
-
-        // !!! С этим полем плагин не заводится, хз почему, поэтому пока так !!!
-        // потом почекаю
-        //ConditionalEventsAPI.registerApiActions(this,new SpawnMythicMob(), new DropMythicItem());
     }
 
     private fun registerListeners() {
@@ -188,8 +184,5 @@ class Acore : JavaPlugin() {
     override fun onDisable() {
         // Plugin shutdown logic
         logger.info("Acore plugin has been disabled")
-
-        // !!! Жиза !!!
-        //ConditionalEventsAPI.unregisterApiActions(this);
     }
 }
