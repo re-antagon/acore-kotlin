@@ -29,8 +29,8 @@ class BannerHeadListener(private val config: ConfigManager) : Listener {
         if (isBanner(clickedItem) || isBanner(cursorItem)) {
             val banner = if (isBanner(clickedItem)) clickedItem else cursorItem
 
-            if (event.slot == 39) { // Head slot
-                player.inventory.helmet = banner?.clone()
+            if (event.slot == 39 && banner != null) { // Head slot
+                player.inventory.helmet = banner.clone()
 
                 if (isBanner(clickedItem)) {
                     event.currentItem = ItemStack(Material.AIR)
