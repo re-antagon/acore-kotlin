@@ -79,7 +79,7 @@ class ConfigManager private constructor(
     }
 
     override fun getString(path: String, defaultValue: String): String {
-        return config.getString(path, defaultValue)
+        return config.getString(path, defaultValue) ?: defaultValue
     }
 
     override fun getInt(path: String): Int {

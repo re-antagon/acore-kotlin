@@ -35,7 +35,7 @@ class BannerHeadListener(private val config: ConfigManager) : Listener {
                 if (isBanner(clickedItem)) {
                     event.currentItem = ItemStack(Material.AIR)
                 } else {
-                    event.cursor = ItemStack(Material.AIR)
+                    event.cursor = null
                 }
 
                 event.isCancelled = true
