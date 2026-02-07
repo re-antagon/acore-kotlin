@@ -7,7 +7,7 @@ import java.util.logging.Logger
 
 class ConfigUpdater(private val logger: Logger) {
     companion object {
-        private const val REQUIRED_VERSION = 1
+        private const val REQUIRED_VERSION = 2
     }
 
     fun updateConfiguration(config: FileConfiguration, defaultConfig: FileConfiguration, configFile: File): FileConfiguration {

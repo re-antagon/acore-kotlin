@@ -89,6 +89,12 @@ class Acore : JavaPlugin() {
             server.pluginManager.registerEvents(ReferralListener(this, referralManager), this)
             logger.info("Referral feature enabled")
         }
+
+        // Register StonecutterBlockProcessorListener if enabled in config
+        if (configManager.getBoolean("stonecutterBlockProcessor.enabled", true)) {
+            server.pluginManager.registerEvents(new StonecutterBlockProcessorListener(this), this);
+            logger.info("Stonecutter Block Processor feature enabled");
+        }
     }
 
     private fun registerCommands() {
