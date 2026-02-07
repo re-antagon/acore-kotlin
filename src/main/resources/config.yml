@@ -1,5 +1,5 @@
 # You don't want to touch this
-version: 1
+config-version: 2
 
 # Select language from "languages" folder, you can add your by creating new file
 language: en-US
@@ -199,4 +199,8 @@ firstJoinItem:
 
 # Referrals feature - allows players to invite others and get rewards
 referrals:
+  enabled: true
+
+# Stonecutter Block Processor - drop sandstone onto stonecutter to chop it to 3 sand
+stonecutterBlockProcessor:
   enabled: true
