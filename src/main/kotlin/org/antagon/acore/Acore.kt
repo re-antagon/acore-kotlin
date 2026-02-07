@@ -92,8 +92,8 @@ class Acore : JavaPlugin() {
 
         // Register StonecutterBlockProcessorListener if enabled in config
         if (configManager.getBoolean("stonecutterBlockProcessor.enabled", true)) {
-            server.pluginManager.registerEvents(new StonecutterBlockProcessorListener(this), this);
-            logger.info("Stonecutter Block Processor feature enabled");
+            server.pluginManager.registerEvents(StonecutterBlockProcessorListener(this), this)
+            logger.info("Stonecutter Block Processor feature enabled")
         }
     }
 
