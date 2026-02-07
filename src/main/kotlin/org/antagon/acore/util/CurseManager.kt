@@ -79,7 +79,7 @@ class CurseManager(private val plugin: JavaPlugin) {
     }
 
     // Get all cursed players
-    fun getCursedPlayers(): Set<UUID> {
+    fun getAllCursedPlayers(): Set<UUID> {
         return HashSet(cursedPlayers)
     }
 }
