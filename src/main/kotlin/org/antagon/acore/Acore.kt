@@ -56,10 +56,14 @@ class Acore : JavaPlugin() {
         server.pluginManager.registerEvents(BlockInteractionListener(), this)
         logger.info("Block Interaction Tracker enabled")
 
-        // Register FogPotionListener if enabled in config
-        if (configManager.getBoolean("fogPotion.enabled", true)) {
-            server.pluginManager.registerEvents(FogPotionListener(this, configManager), this)
-            logger.info("Fog Potion feature enabled")
+        // Register EntityKillListener for tracking player entity kills
+        server.pluginManager.registerEvents(EntityKillListener(), this)
+        logger.info("Entity Kill Tracker enabled")
+
+        // Register IndicatorPotionListener if enabled in config
+        if (configManager.getBoolean("indicatorPotions.enabled", true)) {
+            server.pluginManager.registerEvents(IndicatorPotionListener(this, configManager), this)
+            logger.info("Indicator Potions feature enabled")
         }
 
         // Register BannerHeadListener if enabled in config

@@ -1,6 +1,7 @@
 package org.antagon.acore.listener
 
 import org.antagon.acore.util.BlockInteractionTracker
+import org.antagon.acore.util.BlockInteractionTracker.InteractionType
 import org.bukkit.Location
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -9,7 +10,7 @@ import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.player.PlayerInteractEvent
 
-// Listens for player interactions with blocks to track them for fog potion feature
+// Listens for player interactions with blocks to track them for indicator potion feature
 class BlockInteractionListener : Listener {
     private val tracker: BlockInteractionTracker
 
@@ -21,14 +22,16 @@ class BlockInteractionListener : Listener {
     fun onBlockBreak(event: BlockBreakEvent) {
         val player = event.player ?: return
         val location = event.block.location
-        tracker.recordInteraction(player, location)
+        // Record as BREAK interaction
+        tracker.recordInteraction(player, location, InteractionType.BREAK)
     }
 
     @EventHandler
     fun onBlockPlace(event: BlockPlaceEvent) {
         val player = event.player ?: return
         val location = event.block.location
-        tracker.recordInteraction(player, location)
+        // Record as PLACE interaction
+        tracker.recordInteraction(player, location, InteractionType.PLACE)
     }
 
     @EventHandler
@@ -38,6 +41,7 @@ class BlockInteractionListener : Listener {
 
         val player = event.player ?: return
         val location = event.clickedBlock!!.location
-        tracker.recordInteraction(player, location)
+        // Record as INTERACT interaction
+        tracker.recordInteraction(player, location, InteractionType.INTERACT)
     }
 }
