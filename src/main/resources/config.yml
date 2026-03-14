@@ -1,5 +1,5 @@
 # You don't want to touch this
-config-version: 2
+config-version: 3
 
 # Select language from "languages" folder, you can add your by creating new file
 language: en-US
@@ -222,4 +222,12 @@ referrals:
 
 # Stonecutter Block Processor - drop sandstone onto stonecutter to chop it to 3 sand
 stonecutterBlockProcessor:
+  enabled: true
+
+# Anvil Fall - allows falling anvil jump if land on slime block
+anvilFall:
+  enabled: true
+
+# Piston Launch Anvil - extend piston so it will launch anvil upwards (if slime block connected to piston)
+pistonLaunchAnvil:
   enabled: true

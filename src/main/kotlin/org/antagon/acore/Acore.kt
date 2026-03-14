@@ -99,6 +99,18 @@ class Acore : JavaPlugin() {
             server.pluginManager.registerEvents(StonecutterBlockProcessorListener(this), this)
             logger.info("Stonecutter Block Processor feature enabled")
         }
+
+        // Register AnvilFallListener if enabled in config
+        if (configManager.getBoolean("anvilFall.enabled", true)) {
+            getServer().getPluginManager().registerEvents(new AnvilFallListener(this), this);
+            getLogger().info("Anvil Fall Listener feature enabled");
+        }
+
+        // Register pistonLaunchAnvil if enabled in config
+        if (configManager.getBoolean("pistonLaunchAnvil.enabled", true)) {
+            getServer().getPluginManager().registerEvents(new PistonLaunchAnvilListener(this), this);
+            getLogger().info("Piston Launch Anvil Listener feature enabled");
+        }
     }
 
     private fun registerCommands() {
