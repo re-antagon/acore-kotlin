@@ -102,14 +102,14 @@ class Acore : JavaPlugin() {
 
         // Register AnvilFallListener if enabled in config
         if (configManager.getBoolean("anvilFall.enabled", true)) {
-            getServer().getPluginManager().registerEvents(new AnvilFallListener(this), this);
-            getLogger().info("Anvil Fall Listener feature enabled");
+            server.pluginManager.registerEvents(AnvilFallListener(this), this)
+            logger.info("Anvil Fall Listener feature enabled")
         }
 
         // Register pistonLaunchAnvil if enabled in config
         if (configManager.getBoolean("pistonLaunchAnvil.enabled", true)) {
-            getServer().getPluginManager().registerEvents(new PistonLaunchAnvilListener(this), this);
-            getLogger().info("Piston Launch Anvil Listener feature enabled");
+            server.pluginManager.registerEvents(PistonLaunchAnvilListener(this), this)
+            logger.info("Piston Launch Anvil Listener feature enabled")
         }
     }
 

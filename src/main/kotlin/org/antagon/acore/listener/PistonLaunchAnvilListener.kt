@@ -45,7 +45,7 @@ class PistonLaunchAnvilListener(private val plugin: Plugin) : Listener {
         activeVoids[anvilLoc] = data
         anvilBlock.type = Material.AIR
 
-        Bukkit.getScheduler().runTask(plugin) {
+        Bukkit.getScheduler().runTask(plugin, Runnable {
             val dataToRestore = activeVoids.remove(anvilLoc)
             if (dataToRestore != null) {
                 if (anvilLoc.block.type == Material.AIR || anvils.contains(anvilLoc.block.type)) {
@@ -54,7 +54,7 @@ class PistonLaunchAnvilListener(private val plugin: Plugin) : Listener {
                     anvilLoc.world.dropItemNaturally(anvilLoc, dataToRestore.material.createItemStack())
                 }
             }
-        }
+        })
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
