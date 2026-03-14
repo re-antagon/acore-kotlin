@@ -14,6 +14,7 @@ import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockPhysicsEvent
 import org.bukkit.event.block.BlockPistonExtendEvent
+import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.plugin.Plugin
 import org.bukkit.util.Vector
@@ -51,7 +52,7 @@ class PistonLaunchAnvilListener(private val plugin: Plugin) : Listener {
                 if (anvilLoc.block.type == Material.AIR || anvils.contains(anvilLoc.block.type)) {
                     anvilLoc.block.blockData = dataToRestore
                 } else {
-                    anvilLoc.world.dropItemNaturally(anvilLoc, dataToRestore.material.createItemStack(1))
+                    anvilLoc.world.dropItemNaturally(anvilLoc, ItemStack(dataToRestore.material))
                 }
             }
         })
