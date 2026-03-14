@@ -51,7 +51,7 @@ class PistonLaunchAnvilListener(private val plugin: Plugin) : Listener {
                 if (anvilLoc.block.type == Material.AIR || anvils.contains(anvilLoc.block.type)) {
                     anvilLoc.block.blockData = dataToRestore
                 } else {
-                    anvilLoc.world.dropItemNaturally(anvilLoc, dataToRestore.material.createItemStack())
+                    anvilLoc.world.dropItemNaturally(anvilLoc, dataToRestore.material.createItemStack(1))
                 }
             }
         })
