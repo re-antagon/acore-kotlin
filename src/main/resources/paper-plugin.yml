@@ -1,7 +1,7 @@
 name: acore
-version: '1.0'
+version: '${version}'
 main: org.antagon.acore.Acore
-api-version: '1.21'
+api-version: '26.1'
 load: STARTUP
 authors: [ bloodysupport, nonxedy ]
 description: Multi-purpose plugin for Antagon:Reborn server

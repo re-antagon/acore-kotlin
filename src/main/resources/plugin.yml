@@ -2,14 +2,17 @@ name: acore
 authors: [ bloodysupport, nonxedy ]
 main: org.antagon.acore.Acore
 description: Multi-purpose plugin for Antagon:Reborn server
-version: '1.0'
+version: '${version}'
 prefix: acore
-api-version: '1.21'
+api-version: '26.1'
 website: https://reborn.antagon.su
 load: STARTUP
 
 depend: [LuckPerms]
 softdepend: [ConditionalEvents, MythicMobs]
+
+libraries:
+  - org.jetbrains.kotlin:kotlin-stdlib:2.3.0
 
 commands:
   showinfo:

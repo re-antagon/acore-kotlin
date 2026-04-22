@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.3.0"
+    id("com.gradleup.shadow") version "9.2.2"
 }
 
 group = "org.antagon"
@@ -23,19 +24,32 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.5-R0.1-SNAPSHOT")
-    implementation("com.github.ajneb97:ConditionalEvents:4.65.1")    // Conditional Events api
+    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    compileOnly("com.github.ajneb97:ConditionalEvents:4.65.1")       // Conditional Events api
     compileOnly("io.lumine:Mythic-Dist:5.9.5")                       // Mythic Mobs api
     compileOnly("net.luckperms:api:5.4")                             // LuckPerms api
-    implementation("net.kyori:adventure-api:4.26.1")                 // Adventure API
-    implementation("net.kyori:adventure-text-minimessage:4.26.1")    // Adventure Text MiniMessage
+    compileOnly("net.kyori:adventure-api:4.26.1")                    // Adventure API
+    compileOnly("net.kyori:adventure-text-minimessage:4.26.1")       // Adventure Text MiniMessage
+    implementation(kotlin("stdlib"))
 }
 
 tasks.processResources {
     val props = mapOf("version" to version)
     inputs.properties(props)
     filteringCharset = "UTF-8"
-    filesMatching("paper-plugin.yml") {
+    filesMatching(listOf("plugin.yml", "paper-plugin.yml")) {
         expand(props)
     }
+}
+
+tasks.jar {
+    enabled = false
+}
+
+tasks.shadowJar {
+    archiveClassifier.set("")
+}
+
+tasks.build {
+    dependsOn(tasks.shadowJar)
 }
