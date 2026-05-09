@@ -3,7 +3,7 @@ version: '${version}'
 main: org.antagon.acore.Acore
 api-version: '26.1'
 load: STARTUP
-authors: [ bloodysupport, nonxedy ]
+authors: [ bloodysupport, utophii ]
 description: Multi-purpose plugin for Antagon:Reborn server
 website: https://reborn.antagon.su
 

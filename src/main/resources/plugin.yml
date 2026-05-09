@@ -1,5 +1,5 @@
 name: acore
-authors: [ bloodysupport, nonxedy ]
+authors: [ bloodysupport, utophii ]
 main: org.antagon.acore.Acore
 description: Multi-purpose plugin for Antagon:Reborn server
 version: '${version}'
