@@ -1,12 +1,9 @@
 package org.antagon.acore
 
-import org.antagon.acore.commands.AntiSchvapchichiCommand
 import org.antagon.acore.commands.LinkCommand
-import org.antagon.acore.commands.SchvapchichiCommand
 import org.antagon.acore.commands.ShowInfoCommand
 import org.antagon.acore.core.ConfigManager
 import org.antagon.acore.listener.*
-import org.antagon.acore.util.CurseManager
 import org.antagon.acore.util.ReferralManager
 import org.bukkit.command.PluginCommand
 import org.bukkit.plugin.java.JavaPlugin
@@ -14,15 +11,11 @@ import java.lang.reflect.Constructor
 
 class Acore : JavaPlugin() {
     private lateinit var configManager: ConfigManager
-    private lateinit var curseManager: CurseManager
     private lateinit var referralManager: ReferralManager
 
     override fun onEnable() {
         // Initialize config
         configManager = ConfigManager.initialize(dataFolder, logger)
-
-        // Initialize curse manager
-        curseManager = CurseManager(this)
 
         // Initialize referral manager
         referralManager = ReferralManager(this)
@@ -70,13 +63,6 @@ class Acore : JavaPlugin() {
         if (configManager.getBoolean("bannerHead.enabled", true)) {
             server.pluginManager.registerEvents(BannerHeadListener(configManager), this)
             logger.info("Banner Head feature enabled")
-        }
-
-        // Register SchvapchichiListener if enabled in config
-        if (configManager.getBoolean("schvapchichi.enabled", true)) {
-            server.pluginManager.registerEvents(SchvapchichiListener(this, curseManager), this)
-            logger.info("Schvapchichi feature enabled")
-            logger.info("Cursed players loaded: " + curseManager.cursedPlayers.size)
         }
 
         // Register PlayerMoveListener
@@ -134,50 +120,6 @@ class Acore : JavaPlugin() {
             logger.info("ShowInfo command registered")
         } catch (e: Exception) {
             logger.warning("Failed to register showinfo command: " + e.message)
-        }
-
-        // Register schvapchichi command
-        try {
-            val commandMap = server.commandMap
-            var command = commandMap.getCommand("schvapchichi")
-            if (command == null) {
-                // Create command if it doesn't exist using reflection
-                val constructor: Constructor<PluginCommand> =
-                    PluginCommand::class.java.getDeclaredConstructor(String::class.java, org.bukkit.plugin.Plugin::class.java)
-                constructor.isAccessible = true
-                command = constructor.newInstance("schvapchichi", this)
-                command.description = "Проклясть игрока Швапчичи"
-                command.usage = "/schvapchichi"
-                (command as PluginCommand).setExecutor(SchvapchichiCommand(this, curseManager))
-                commandMap.register("acore", command)
-            } else {
-                (command as PluginCommand).setExecutor(SchvapchichiCommand(this, curseManager))
-            }
-            logger.info("Schvapchichi command registered")
-        } catch (e: Exception) {
-            logger.warning("Failed to register schvapchichi command: " + e.message)
-        }
-
-        // Register anti_schvapchichi command
-        try {
-            val commandMap = server.commandMap
-            var command = commandMap.getCommand("anti_schvapchichi")
-            if (command == null) {
-                // Create command if it doesn't exist using reflection
-                val constructor: Constructor<PluginCommand> =
-                    PluginCommand::class.java.getDeclaredConstructor(String::class.java, org.bukkit.plugin.Plugin::class.java)
-                constructor.isAccessible = true
-                command = constructor.newInstance("anti_schvapchichi", this)
-                command.description = "Избавиться от проклятья Швапчичи"
-                command.usage = "/anti_schvapchichi"
-                (command as PluginCommand).setExecutor(AntiSchvapchichiCommand(this, curseManager))
-                commandMap.register("acore", command)
-            } else {
-                (command as PluginCommand).setExecutor(AntiSchvapchichiCommand(this, curseManager))
-            }
-            logger.info("AntiSchvapchichi command registered")
-        } catch (e: Exception) {
-            logger.warning("Failed to register anti_schvapchichi command: " + e.message)
         }
 
         // Register link command

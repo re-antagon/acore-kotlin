@@ -200,14 +200,6 @@ indicatorPotions:
       enabled: true
       custom-model-data: 1191
 
-# Швапчичи feature - cursed players will lose random items on rejoin
-schvapchichi:
-  enabled: true
-  # Curse settings - steal random item from inventory on rejoin
-  curse:
-    stealChance: 0.05  # 5% chance to steal an item
-    message: "&8Швапчичи забирает это..."
-
 # First join item feature - gives MythicMobs item to players on first join
 firstJoinItem:
   enabled: true

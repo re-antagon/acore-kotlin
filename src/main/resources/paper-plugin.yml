@@ -15,14 +15,6 @@ commands:
     description: Toggleable bossbar
     usage: /showinfo
     permission: acore.showinfo
-  schvapchichi:
-    description: Enabled schvapchichi
-    usage: /schvapchichi
-    permission: acore.schvapchichi
-  anti_schvapchichi:
-    description: Disable schvapchichi
-    usage: /anti_schvapchichi
-    permission: acore.a_schvapchichi
   link:
     description: Invite a player to become your referral
     usage: /link <player>
@@ -34,18 +26,10 @@ permissions:
     default: op
     children:
       - acore.showinfo
-      - acore.schvapchichi
-      - acore.a_schvapchichi
       - acore.link
   acore.showinfo:
     description: Permission for showinfo command
     default: true
-  acore.schvapchichi:
-    description: Permission for schvapchichi command
-    default: true
-  acore.a_schvapchichi:
-    description: Permission for schvapchichi command
-    default: op
   acore.link:
     description: Permission for link command
     default: true
