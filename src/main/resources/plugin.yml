@@ -4,7 +4,7 @@ main: org.antagon.acore.Acore
 description: Multi-purpose plugin for Antagon:Reborn server
 version: '${version}'
 prefix: acore
-api-version: '26.1'
+api-version: '1.21'
 website: https://reborn.antagon.su
 load: STARTUP
 
