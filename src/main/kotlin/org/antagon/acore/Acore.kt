@@ -97,6 +97,12 @@ class Acore : JavaPlugin() {
             server.pluginManager.registerEvents(PistonLaunchAnvilListener(this), this)
             logger.info("Piston Launch Anvil Listener feature enabled")
         }
+
+        // Register CopperOxidationListener if enabled in config
+        if (configManager.getBoolean("copperOxidation.enabled", true)) {
+            server.pluginManager.registerEvents(CopperOxidationListener(this, configManager), this)
+            logger.info("Copper Oxidation acceleration feature enabled")
+        }
     }
 
     private fun registerCommands() {

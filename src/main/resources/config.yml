@@ -223,3 +223,15 @@ anvilFall:
 # Piston Launch Anvil - extend piston so it will launch anvil upwards (if slime block connected to piston)
 pistonLaunchAnvil:
   enabled: true
+
+# Copper Oxidation Acceleration - accelerates copper oxidation when blocks are in water or under rain
+copperOxidation:
+  enabled: true
+  # How much faster copper oxidizes when submerged in water (multiplier)
+  water-speed-multiplier: 4.0
+  # How much faster copper oxidizes when exposed to rain (multiplier)
+  rain-speed-multiplier: 2.0
+  # How often to check for copper blocks (in ticks, 20 = 1 second)
+  check-interval: 40
+  # Radius in blocks to scan around each player for copper blocks
+  scan-radius: 48
