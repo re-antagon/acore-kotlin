@@ -65,9 +65,6 @@ class Acore : JavaPlugin() {
             logger.info("Banner Head feature enabled")
         }
 
-        // Register PlayerMoveListener
-        server.pluginManager.registerEvents(PlayerMoveListener(), this)
-
         // Register PlayerJoinListener if enabled in config
         if (configManager.getBoolean("firstJoinItem.enabled", true)) {
             server.pluginManager.registerEvents(PlayerJoinListener(), this)
