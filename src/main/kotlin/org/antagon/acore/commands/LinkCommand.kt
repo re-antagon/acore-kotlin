@@ -58,6 +58,9 @@ class LinkCommand(private val plugin: JavaPlugin, private val referralManager: R
             return true
         }
 
+        // Record pending invitation
+        referralManager.addPendingInvite(referralId, inviter.uniqueId)
+
         // Send invitation message to referral
         sendInvitationMessage(inviter, referral)
 

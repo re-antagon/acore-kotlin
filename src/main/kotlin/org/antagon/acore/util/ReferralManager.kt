@@ -13,6 +13,7 @@ class ReferralManager(private val plugin: JavaPlugin) {
     private val inviterReferrals: MutableMap<UUID, MutableList<UUID>> = HashMap() // пригласивший -> список рефералов
     private val referralStartTime: MutableMap<UUID, Long> = HashMap() // реферал -> время начала трекинга (в миллисекундах)
     private val referralRewarded: MutableMap<UUID, Boolean> = HashMap() // реферал -> получил ли награду за 7 часов
+    private val pendingInvites: MutableMap<UUID, UUID> = HashMap() // реферал -> пригласивший (не сохраняется в файл)
     private lateinit var referralConfig: YamlConfiguration
 
     init {
@@ -214,5 +215,18 @@ class ReferralManager(private val plugin: JavaPlugin) {
             }
         }
         return active
+    }
+
+    // Pending invites management
+    fun addPendingInvite(referralId: UUID, inviterId: UUID) {
+        pendingInvites[referralId] = inviterId
+    }
+
+    fun getPendingInviter(referralId: UUID): UUID? {
+        return pendingInvites[referralId]
+    }
+
+    fun removePendingInvite(referralId: UUID) {
+        pendingInvites.remove(referralId)
     }
 }

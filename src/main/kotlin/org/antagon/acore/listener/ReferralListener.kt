@@ -70,14 +70,23 @@ class ReferralListener(private val plugin: JavaPlugin, private val referralManag
             return
         }
 
-        // Check if already a referral
-        if (referralManager.isReferral(referral.uniqueId)) {
-            referral.sendMessage("§cВы уже являетесь рефералом!")
+        // Verify that there is a pending invite from this inviter
+        val pendingInviterId = referralManager.getPendingInviter(referral.uniqueId)
+        if (pendingInviterId != inviter.uniqueId) {
+            referral.sendMessage("§cУ вас нет активного приглашения от этого игрока!")
             return
         }
 
-        // Add referral
+        // Check if already a referral
+        if (referralManager.isReferral(referral.uniqueId)) {
+            referral.sendMessage("§cВы уже являетесь рефералом!")
+            referralManager.removePendingInvite(referral.uniqueId)
+            return
+        }
+
+        // Add referral and remove invite
         referralManager.addReferral(referral.uniqueId, inviter.uniqueId)
+        referralManager.removePendingInvite(referral.uniqueId)
 
         // Give initial reward to inviter
         giveReward(inviter, 1)
@@ -97,9 +106,16 @@ class ReferralListener(private val plugin: JavaPlugin, private val referralManag
             return
         }
 
+        val inviter = Bukkit.getPlayer(inviterName)
+        if (inviter != null) {
+            val pendingInviterId = referralManager.getPendingInviter(referral.uniqueId)
+            if (pendingInviterId == inviter.uniqueId) {
+                referralManager.removePendingInvite(referral.uniqueId)
+            }
+        }
+
         referral.sendMessage("§cВы отклонили приглашение от $inviterName")
 
-        val inviter = Bukkit.getPlayer(inviterName)
         if (inviter != null) {
             inviter.sendMessage("§cИгрок $referralName отклонил ваше приглашение")
         }
