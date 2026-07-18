@@ -181,13 +181,12 @@ class ReferralManager(private val plugin: JavaPlugin) {
     }
 
     // Start tracking time for referral
-    fun startReferralTracking(referralId: UUID) {
-        val now = System.currentTimeMillis()
-        referralStartTime[referralId] = now
+    fun startReferralTracking(referralId: UUID, startPlaytimeTicks: Long) {
+        referralStartTime[referralId] = startPlaytimeTicks
         referralRewarded[referralId] = false
         saveReferrals()
 
-        plugin.logger.info("Started tracking time for referral $referralId at $now")
+        plugin.logger.info("Started tracking time for referral $referralId at $startPlaytimeTicks ticks")
     }
 
     // Get start time for referral

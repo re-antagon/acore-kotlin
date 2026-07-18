@@ -25,8 +25,7 @@ class ReferralListener(private val plugin: JavaPlugin, private val referralManag
     }
 
     private fun checkReferralTimes() {
-        val currentTime = System.currentTimeMillis()
-        val sevenHoursMs = 7 * 60 * 60 * 1000L
+        val sevenHoursTicks = 7 * 60 * 60 * 20L // 7 hours in ticks (20 ticks/sec)
 
         // Check all active referrals
         for (player in Bukkit.getOnlinePlayers()) {
@@ -35,9 +34,23 @@ class ReferralListener(private val plugin: JavaPlugin, private val referralManag
             if (referralManager.isReferral(playerId) && !referralManager.isReferralRewarded(playerId)) {
                 val startTime = referralManager.getReferralStartTime(playerId)
                 if (startTime != null) {
-                    val playedTime = currentTime - startTime
+                    val currentPlaytime = player.getStatistic(org.bukkit.Statistic.PLAY_ONE_MINUTE).toLong()
+                    
+                    // Fallback for old epoch timestamps in referrals.yml
+                    val isOldTimestamp = startTime > 1_000_000_000_000L
+                    val playedTime = if (isOldTimestamp) {
+                        System.currentTimeMillis() - startTime
+                    } else {
+                        currentPlaytime - startTime
+                    }
+                    
+                    val requiredTime = if (isOldTimestamp) {
+                        7 * 60 * 60 * 1000L // 7 hours in milliseconds
+                    } else {
+                        sevenHoursTicks // 7 hours in ticks
+                    }
 
-                    if (playedTime >= sevenHoursMs) {
+                    if (playedTime >= requiredTime) {
                         // Give reward to inviter
                         val inviterId = referralManager.getInviter(playerId)
                         if (inviterId != null) {
@@ -91,8 +104,9 @@ class ReferralListener(private val plugin: JavaPlugin, private val referralManag
         // Give initial reward to inviter
         giveReward(inviter, 1)
 
-        // Start tracking time
-        referralManager.startReferralTracking(referral.uniqueId)
+        // Start tracking time using current playtime statistic (ticks)
+        val currentPlaytime = referral.getStatistic(org.bukkit.Statistic.PLAY_ONE_MINUTE).toLong()
+        referralManager.startReferralTracking(referral.uniqueId, currentPlaytime)
 
         referral.sendMessage("§aВы приняли приглашение от $inviterName!")
         inviter.sendMessage("§aИгрок $referralName принял ваше приглашение!")
