@@ -97,43 +97,53 @@ class ReferralManager(private val plugin: JavaPlugin) {
 
     // Save referrals to file
     private fun saveReferrals() {
-        // Save referrals map
-        val referralsMap = HashMap<String, String>()
-        for ((key, value) in referrals) {
-            referralsMap[key.toString()] = value.toString()
-        }
-        referralConfig.set("referrals", referralsMap)
+        // Create snapshots of the maps on the main thread to ensure thread safety
+        val referralsSnapshot = HashMap(referrals)
+        val inviterReferralsSnapshot = HashMap(inviterReferrals.mapValues { ArrayList(it.value) })
+        val referralStartTimeSnapshot = HashMap(referralStartTime)
+        val referralRewardedSnapshot = HashMap(referralRewarded)
 
-        // Save inviter referrals map
-        val inviterMap = HashMap<String, List<String>>()
-        for ((key, value) in inviterReferrals) {
-            val referralIds = mutableListOf<String>()
-            for (id in value) {
-                referralIds.add(id.toString())
+        // Run the file saving task asynchronously
+        org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
+            synchronized(referralFile) { // Ensure only one thread writes to the file at a time
+                val config = YamlConfiguration()
+
+                // Save referrals map
+                val referralsMap = HashMap<String, String>()
+                for ((key, value) in referralsSnapshot) {
+                    referralsMap[key.toString()] = value.toString()
+                }
+                config.set("referrals", referralsMap)
+
+                // Save inviter referrals map
+                val inviterMap = HashMap<String, List<String>>()
+                for ((key, value) in inviterReferralsSnapshot) {
+                    val referralIds = value.map { it.toString() }
+                    inviterMap[key.toString()] = referralIds
+                }
+                config.set("inviter-referrals", inviterMap)
+
+                // Save start times
+                val startTimesMap = HashMap<String, Long>()
+                for ((key, value) in referralStartTimeSnapshot) {
+                    startTimesMap[key.toString()] = value
+                }
+                config.set("referral-start-times", startTimesMap)
+
+                // Save rewarded status
+                val rewardedMap = HashMap<String, Boolean>()
+                for ((key, value) in referralRewardedSnapshot) {
+                    rewardedMap[key.toString()] = value
+                }
+                config.set("referral-rewarded", rewardedMap)
+
+                try {
+                    config.save(referralFile)
+                } catch (e: IOException) {
+                    plugin.logger.severe("Failed to save referrals file asynchronously: " + e.message)
+                }
             }
-            inviterMap[key.toString()] = referralIds
-        }
-        referralConfig.set("inviter-referrals", inviterMap)
-
-        // Save start times
-        val startTimesMap = HashMap<String, Long>()
-        for ((key, value) in referralStartTime) {
-            startTimesMap[key.toString()] = value
-        }
-        referralConfig.set("referral-start-times", startTimesMap)
-
-        // Save rewarded status
-        val rewardedMap = HashMap<String, Boolean>()
-        for ((key, value) in referralRewarded) {
-            rewardedMap[key.toString()] = value
-        }
-        referralConfig.set("referral-rewarded", rewardedMap)
-
-        try {
-            referralConfig.save(referralFile)
-        } catch (e: IOException) {
-            plugin.logger.severe("Failed to save referrals file: " + e.message)
-        }
+        })
     }
 
     // Add referral
