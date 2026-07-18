@@ -1,6 +1,7 @@
 package org.antagon.acore.commands
 
-import org.bukkit.Bukkit
+import net.luckperms.api.LuckPermsProvider
+import net.luckperms.api.node.types.PermissionNode
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
@@ -14,16 +15,24 @@ class ShowInfoCommand : CommandExecutor {
         }
 
         val player = sender
-        val playerName = player.name
         val hasPermission = player.hasPermission("bossbar.show")
 
+        val luckPerms = LuckPermsProvider.get()
+        val user = luckPerms.userManager.getUser(player.uniqueId)
+        if (user == null) {
+            player.sendMessage("§cОшибка: данные LuckPerms еще не загружены!")
+            return true
+        }
+
         if (hasPermission) {
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                "lp user $playerName permission set bossbar.show false")
+            val node = PermissionNode.builder("bossbar.show").value(false).build()
+            user.data().add(node)
+            luckPerms.userManager.saveUser(user)
             player.sendMessage("§cBossbar отключен!")
         } else {
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                "lp user $playerName permission set bossbar.show true")
+            val node = PermissionNode.builder("bossbar.show").value(true).build()
+            user.data().add(node)
+            luckPerms.userManager.saveUser(user)
             player.sendMessage("§aBossbar включен!")
         }
 
