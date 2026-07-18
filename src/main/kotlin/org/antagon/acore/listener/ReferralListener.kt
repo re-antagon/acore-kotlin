@@ -90,6 +90,16 @@ class ReferralListener(private val plugin: JavaPlugin, private val referralManag
             return
         }
 
+        val referralIp = referral.address?.address?.hostAddress
+        val inviterIp = inviter.address?.address?.hostAddress
+
+        if (referralIp != null && inviterIp != null && referralIp == inviterIp) {
+            referral.sendMessage("§cВы не можете принять приглашение от игрока с таким же IP-адресом!")
+            inviter.sendMessage("§cИгрок $referralName имеет такой же IP-адрес, как и вы!")
+            referralManager.removePendingInvite(referral.uniqueId)
+            return
+        }
+
         // Check if already a referral
         if (referralManager.isReferral(referral.uniqueId)) {
             referral.sendMessage("§cВы уже являетесь рефералом!")

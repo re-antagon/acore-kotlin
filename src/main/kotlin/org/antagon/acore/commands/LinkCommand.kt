@@ -51,6 +51,14 @@ class LinkCommand(private val plugin: JavaPlugin, private val referralManager: R
             return true
         }
 
+        val inviterIp = inviter.address?.address?.hostAddress
+        val referralIp = referral.address?.address?.hostAddress
+
+        if (inviterIp != null && referralIp != null && inviterIp == referralIp) {
+            inviter.sendMessage("§cВы не можете пригласить игрока с таким же IP-адресом!")
+            return true
+        }
+
         val referralId = referral.uniqueId
 
         if (referralManager.isReferral(referralId)) {
