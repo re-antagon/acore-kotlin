@@ -4,9 +4,12 @@ import org.antagon.acore.commands.LinkCommand
 import org.antagon.acore.commands.ShowInfoCommand
 import org.antagon.acore.core.ConfigManager
 import org.antagon.acore.listener.*
+import org.antagon.acore.util.BlockInteractionTracker
+import org.antagon.acore.util.EntityKillTracker
 import org.antagon.acore.util.ReferralManager
 import org.bukkit.command.PluginCommand
 import org.bukkit.plugin.java.JavaPlugin
+import org.bukkit.scheduler.BukkitRunnable
 import java.lang.reflect.Constructor
 
 class Acore : JavaPlugin() {
@@ -25,6 +28,9 @@ class Acore : JavaPlugin() {
 
         // Register listeners
         registerListeners()
+
+        // Start cleanup task for trackers
+        startCleanupTask()
 
         logger.info("Acore plugin has been enabled successfully!")
     }
@@ -146,6 +152,20 @@ class Acore : JavaPlugin() {
         } catch (e: Exception) {
             logger.warning("Failed to register link command: " + e.message)
         }
+    }
+
+    private fun startCleanupTask() {
+        object : BukkitRunnable() {
+            override fun run() {
+                try {
+                    BlockInteractionTracker.getInstance().cleanupOldInteractions()
+                    EntityKillTracker.getInstance().cleanupOldKills()
+                    logger.info("Trackers cleanup completed successfully.")
+                } catch (e: Exception) {
+                    logger.warning("Failed to run trackers cleanup: " + e.message)
+                }
+            }
+        }.runTaskTimer(this, 12000L, 72000L) // Run every hour (72000 ticks), start after 10 minutes (12000 ticks)
     }
 
     override fun onDisable() {
