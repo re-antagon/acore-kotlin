@@ -34,7 +34,7 @@ class VillagerTransportListener(private val plugin: Acore, private val config: I
         }
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     fun onVehicleEnter(event: VehicleEnterEvent) {
         if (!allowCamelTransport) return
 
@@ -59,7 +59,7 @@ class VillagerTransportListener(private val plugin: Acore, private val config: I
         }
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     fun onPlayerInteractEntity(event: PlayerInteractEntityEvent) {
         if (event.rightClicked is Villager) {
             val villager = event.rightClicked as Villager

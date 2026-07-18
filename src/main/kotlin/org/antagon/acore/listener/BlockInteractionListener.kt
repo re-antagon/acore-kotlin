@@ -18,7 +18,7 @@ class BlockInteractionListener : Listener {
         tracker = BlockInteractionTracker.getInstance()
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     fun onBlockBreak(event: BlockBreakEvent) {
         val player = event.player ?: return
         val location = event.block.location
@@ -26,7 +26,7 @@ class BlockInteractionListener : Listener {
         tracker.recordInteraction(player, location, InteractionType.BREAK)
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     fun onBlockPlace(event: BlockPlaceEvent) {
         val player = event.player ?: return
         val location = event.block.location
@@ -34,7 +34,7 @@ class BlockInteractionListener : Listener {
         tracker.recordInteraction(player, location, InteractionType.PLACE)
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     fun onPlayerInteract(event: PlayerInteractEvent) {
         // Only track interactions with blocks, not air
         if (event.clickedBlock == null) return

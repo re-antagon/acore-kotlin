@@ -12,7 +12,7 @@ import org.bukkit.inventory.ItemStack
 
 class ItemFrameListener(private val config: ConfigManager) : Listener {
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     fun onPlayerInteractEntity(event: PlayerInteractEntityEvent) {
         if (!config.getBoolean("invisibleItemFrames.enabled", true)) {
             return
