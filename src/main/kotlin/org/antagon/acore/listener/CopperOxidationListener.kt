@@ -94,6 +94,8 @@ class CopperOxidationListener(
         val onlinePlayers = Bukkit.getOnlinePlayers()
         if (onlinePlayers.isEmpty()) return
 
+        val random = java.util.concurrent.ThreadLocalRandom.current()
+
         for (player in onlinePlayers) {
             if (!player.isOnline) continue
 
@@ -110,19 +112,20 @@ class CopperOxidationListener(
             val minY = (centerY - scanRadius).coerceAtLeast(world.minHeight)
             val maxY = (centerY + scanRadius).coerceAtMost(world.maxHeight - 1)
 
-            // Step by 2 blocks to reduce CPU load
-            for (x in minX..maxX step 3) {
-                for (z in minZ..maxZ step 3) {
-                    for (y in minY..maxY step 2) {
-                        try {
-                            val block = world.getBlockAt(x, y, z)
-                            if (oxidationStages.containsKey(block.type)) {
-                                checkAndOxidize(block)
-                            }
-                        } catch (e: Exception) {
-                            // Skip invalid blocks
-                        }
+            // Perform 300 random samples in the scan volume instead of checking every block in grid.
+            // This is O(1) CPU load per player and fixes the grid-alignment bug where certain blocks were never checked.
+            repeat(300) {
+                try {
+                    val rx = random.nextInt(minX, maxX + 1)
+                    val rz = random.nextInt(minZ, maxZ + 1)
+                    val ry = random.nextInt(minY, maxY + 1)
+
+                    val block = world.getBlockAt(rx, ry, rz)
+                    if (oxidationStages.containsKey(block.type)) {
+                        checkAndOxidize(block)
                     }
+                } catch (_: Exception) {
+                    // Skip invalid coordinates/blocks
                 }
             }
         }
@@ -209,18 +212,21 @@ class CopperOxidationListener(
             return false
         }
 
-        // Check if the block has sky access (no solid blocks directly above)
-        var y = block.y + 1
-        val maxY = world.maxHeight
+        // Query chunk heightmap in O(1) time
+        val highestY = world.getHighestBlockYAt(block.x, block.z)
+        if (highestY <= block.y) {
+            return true
+        }
 
-        while (y < maxY) {
+        // Check blocks only between block.y + 1 and highestY (usually 0 to a few blocks)
+        var y = block.y + 1
+        while (y <= highestY) {
             val aboveBlock = world.getBlockAt(block.x, y, block.z)
             val type = aboveBlock.type
 
             // Consider solid blocks as blocking rain (except transparent ones)
             val typeName = type.name
-            if (type.isSolid &&
-                !typeName.contains("LEAVES")) {
+            if (type.isSolid && !typeName.contains("LEAVES")) {
                 return false
             }
             y++
