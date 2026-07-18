@@ -82,22 +82,19 @@ class VillagerTransportListener(private val plugin: Acore, private val config: I
     private fun startCamelDetectionTask() {
         object : BukkitRunnable() {
             override fun run() {
-                plugin.server.worlds.forEach { world ->
-                    world.getEntitiesByClass(Camel::class.java).forEach { camel ->
-                        if (camel.passengers.size == 1 &&
-                            camel.passengers[0] is Player) {
-
-                            camel.getNearbyEntities(villagerDetectionRange.toDouble(), villagerDetectionRange.toDouble(), villagerDetectionRange.toDouble()).stream()
-                                .filter { entity -> entity is Villager }
-                                .map { entity -> entity as Villager }
-                                .findFirst()
-                                .ifPresent { villager ->
-                                    if (villager.vehicle == null) {
-                                        camel.addPassenger(villager)
-                                        logger.info("Villager mounted on camel (from detection task)")
-                                    }
+                for (player in plugin.server.onlinePlayers) {
+                    val vehicle = player.vehicle
+                    if (vehicle is Camel && vehicle.passengers.size == 1) {
+                        vehicle.getNearbyEntities(villagerDetectionRange.toDouble(), villagerDetectionRange.toDouble(), villagerDetectionRange.toDouble()).stream()
+                            .filter { entity -> entity is Villager }
+                            .map { entity -> entity as Villager }
+                            .findFirst()
+                            .ifPresent { villager ->
+                                if (villager.vehicle == null) {
+                                    vehicle.addPassenger(villager)
+                                    logger.info("Villager mounted on camel (from detection task)")
                                 }
-                        }
+                            }
                     }
                 }
             }
@@ -107,19 +104,24 @@ class VillagerTransportListener(private val plugin: Acore, private val config: I
     private fun startLlamaDetectionTask() {
         object : BukkitRunnable() {
             override fun run() {
-                plugin.server.worlds.forEach { world ->
-                    world.getEntitiesByClass(Llama::class.java).forEach { llama ->
-                        if (hasCarpet(llama) && llama.passengers.isEmpty()) {
-                            llama.getNearbyEntities(villagerDetectionRange.toDouble(), villagerDetectionRange.toDouble(), villagerDetectionRange.toDouble()).stream()
-                                .filter { entity -> entity is Villager }
-                                .map { entity -> entity as Villager }
-                                .findFirst()
-                                .ifPresent { villager ->
-                                    if (villager.vehicle == null) {
-                                        llama.addPassenger(villager)
-                                        logger.info("Villager mounted on llama")
+                for (player in plugin.server.onlinePlayers) {
+                    // Find llamas near the player within 32 blocks
+                    val nearbyEntities = player.getNearbyEntities(32.0, 32.0, 32.0)
+                    for (entity in nearbyEntities) {
+                        if (entity is Llama) {
+                            val llama = entity
+                            if (hasCarpet(llama) && llama.passengers.isEmpty()) {
+                                llama.getNearbyEntities(villagerDetectionRange.toDouble(), villagerDetectionRange.toDouble(), villagerDetectionRange.toDouble()).stream()
+                                    .filter { ent -> ent is Villager }
+                                    .map { ent -> ent as Villager }
+                                    .findFirst()
+                                    .ifPresent { villager ->
+                                        if (villager.vehicle == null) {
+                                            llama.addPassenger(villager)
+                                            logger.info("Villager mounted on llama")
+                                        }
                                     }
-                                }
+                            }
                         }
                     }
                 }
