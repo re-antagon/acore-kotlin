@@ -7,8 +7,17 @@ authors: [ bloodysupport, utophii ]
 description: Multi-purpose plugin for Antagon:Reborn server
 website: https://reborn.antagon.su
 
-depend: [LuckPerms]
-softdepend: [ConditionalEvents, MythicMobs]
+dependencies:
+  server:
+    LuckPerms:
+      load: BEFORE
+      required: true
+    ConditionalEvents:
+      load: BEFORE
+      required: false
+    MythicMobs:
+      load: BEFORE
+      required: false
 
 commands:
   showinfo:
