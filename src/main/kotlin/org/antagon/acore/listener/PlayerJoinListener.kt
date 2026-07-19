@@ -60,55 +60,13 @@ class PlayerJoinListener : Listener {
             return // Player already received the item
         }
 
-        // Check if MythicMobs is loaded
-        if (Bukkit.getPluginManager().getPlugin("MythicMobs") == null) {
-            logger.info("MythicMobs plugin not found, skipping first join item for ${player.name}")
+        val item = org.antagon.acore.util.MythicMobsHelper.getMythicItem(mythicItemName)
+        if (item == null) {
+            logger.warning("MythicMobs item '$mythicItemName' not found, cannot give first join item to ${player.name}")
             return
         }
 
         try {
-            // Use reflection to access MythicMobs classes
-            // First try to get the class from the MythicMobs plugin
-            val mythicMobsPlugin = Bukkit.getPluginManager().getPlugin("MythicMobs")
-            var mythicBukkitClass: Class<*>? = null
-
-            if (mythicMobsPlugin != null) {
-                try {
-                    mythicBukkitClass = Class.forName("io.lumine.mythic.bukkit.MythicBukkit", true, mythicMobsPlugin.javaClass.classLoader)
-                } catch (e: ClassNotFoundException) {
-                    // Fallback to system classloader
-                    mythicBukkitClass = Class.forName("io.lumine.mythic.bukkit.MythicBukkit")
-                }
-            } else {
-                mythicBukkitClass = Class.forName("io.lumine.mythic.bukkit.MythicBukkit")
-            }
-
-            val instMethod = mythicBukkitClass.getMethod("inst")
-            val mythicBukkit = instMethod.invoke(null)
-
-            if (mythicBukkit == null) {
-                logger.warning("MythicBukkit instance is null, cannot give first join item to ${player.name}")
-                return
-            }
-
-            // Get item manager
-            val getItemManagerMethod = mythicBukkitClass.getMethod("getItemManager")
-            val itemManager = getItemManagerMethod.invoke(mythicBukkit)
-
-            if (itemManager == null) {
-                logger.warning("ItemManager is null, cannot give first join item to ${player.name}")
-                return
-            }
-
-            // Get item stack
-            val getItemStackMethod = itemManager.javaClass.getMethod("getItemStack", String::class.java)
-            val item = getItemStackMethod.invoke(itemManager, mythicItemName) as ItemStack?
-
-            if (item == null) {
-                logger.warning("MythicMobs item '$mythicItemName' not found, cannot give first join item to ${player.name}")
-                return
-            }
-
             // Set custom model data
             val meta = item.itemMeta
             if (meta != null) {
@@ -124,10 +82,6 @@ class PlayerJoinListener : Listener {
 
             logger.info("Gave first join item '$mythicItemName' with model data $customModelData to ${player.name}")
 
-        } catch (e: ClassNotFoundException) {
-            logger.warning("MythicMobs classes not found, cannot give first join item to ${player.name}")
-        } catch (e: NoSuchMethodException) {
-            logger.severe("MythicMobs API method not found: " + e.message)
         } catch (e: Exception) {
             logger.severe("Error giving first join item to ${player.name}: " + e.message)
             e.printStackTrace()
