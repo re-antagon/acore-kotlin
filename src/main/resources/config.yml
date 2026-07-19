@@ -215,6 +215,10 @@ referrals:
 # Stonecutter Block Processor - drop sandstone onto stonecutter to chop it to 3 sand
 stonecutterBlockProcessor:
   enabled: true
+  crafts:
+    SANDSTONE_TO_SAND:
+      MATERIAL: SANDSTONE 1
+      RESULT: SAND 3
 
 # Anvil Fall - allows falling anvil jump if land on slime block
 anvilFall:
