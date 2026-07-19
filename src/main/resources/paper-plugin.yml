@@ -18,17 +18,6 @@ dependencies:
     MythicMobs:
       load: BEFORE
       required: false
-
-commands:
-  showinfo:
-    description: Toggleable bossbar
-    usage: /showinfo
-    permission: acore.showinfo
-  link:
-    description: Invite a player to become your referral
-    usage: /link <player>
-    permission: acore.link
-
 permissions:
   permission.admin:
     description: Permission for admin commands
@@ -36,9 +25,13 @@ permissions:
     children:
       - acore.showinfo
       - acore.link
+      - acore.admin
   acore.showinfo:
     description: Permission for showinfo command
     default: true
   acore.link:
     description: Permission for link command
     default: true
+  acore.admin:
+    description: Permission to reload the plugin and manage acore
+    default: op

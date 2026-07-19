@@ -1,16 +1,13 @@
 package org.antagon.acore
 
-import org.antagon.acore.commands.LinkCommand
-import org.antagon.acore.commands.ShowInfoCommand
+import org.antagon.acore.commands.AcoreCommand
 import org.antagon.acore.core.ConfigManager
 import org.antagon.acore.listener.*
 import org.antagon.acore.util.BlockInteractionTracker
 import org.antagon.acore.util.EntityKillTracker
 import org.antagon.acore.util.ReferralManager
-import org.bukkit.command.PluginCommand
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
-import java.lang.reflect.Constructor
 
 class Acore : JavaPlugin() {
     private lateinit var configManager: ConfigManager
@@ -32,7 +29,7 @@ class Acore : JavaPlugin() {
         referralManager = ReferralManager(this)
 
         // Register commands
-        registerCommands()
+        AcoreCommand(this, configManager, referralManager).register()
 
         // Register listeners
         registerListeners()
@@ -126,52 +123,6 @@ class Acore : JavaPlugin() {
         }
     }
 
-    private fun registerCommands() {
-        // Register showinfo command using Paper API
-        try {
-            val commandMap = server.commandMap
-            var command = commandMap.getCommand("showinfo")
-            if (command == null) {
-                // Create command if it doesn't exist using reflection
-                val constructor: Constructor<PluginCommand> =
-                    PluginCommand::class.java.getDeclaredConstructor(String::class.java, org.bukkit.plugin.Plugin::class.java)
-                constructor.isAccessible = true
-                command = constructor.newInstance("showinfo", this)
-                command.description = "Переключить отображение боссбара"
-                command.usage = "/showinfo"
-                (command as PluginCommand).setExecutor(ShowInfoCommand())
-                commandMap.register("acore", command)
-            } else {
-                (command as PluginCommand).setExecutor(ShowInfoCommand())
-            }
-            logger.info("ShowInfo command registered")
-        } catch (e: Exception) {
-            logger.warning("Failed to register showinfo command: " + e.message)
-        }
-
-        // Register link command
-        try {
-            val commandMap = server.commandMap
-            var command = commandMap.getCommand("link")
-            if (command == null) {
-                // Create command if it doesn't exist using reflection
-                val constructor: Constructor<PluginCommand> =
-                    PluginCommand::class.java.getDeclaredConstructor(String::class.java, org.bukkit.plugin.Plugin::class.java)
-                constructor.isAccessible = true
-                command = constructor.newInstance("link", this)
-                command.description = "Invite a player to become your referral"
-                command.usage = "/link <player>"
-                (command as PluginCommand).setExecutor(LinkCommand(this, referralManager))
-                commandMap.register("acore", command)
-            } else {
-                (command as PluginCommand).setExecutor(LinkCommand(this, referralManager))
-            }
-            logger.info("Link command registered")
-        } catch (e: Exception) {
-            logger.warning("Failed to register link command: " + e.message)
-        }
-    }
-
     private fun startCleanupTask() {
         object : BukkitRunnable() {
             override fun run() {
@@ -184,6 +135,25 @@ class Acore : JavaPlugin() {
                 }
             }
         }.runTaskTimer(this, 12000L, 72000L) // Run every hour (72000 ticks), start after 10 minutes (12000 ticks)
+    }
+
+    fun reloadPlugin() {
+        // 1. Reload the configuration manager
+        configManager.reload()
+
+        // 2. Unregister all event listeners registered by this plugin
+        org.bukkit.event.HandlerList.unregisterAll(this)
+
+        // 3. Cancel all tasks registered by this plugin
+        server.scheduler.cancelTasks(this)
+
+        // 4. Re-register listeners
+        registerListeners()
+
+        // 5. Restart cleanup task
+        startCleanupTask()
+
+        logger.info("Acore plugin has been reloaded successfully!")
     }
 
     override fun onDisable() {

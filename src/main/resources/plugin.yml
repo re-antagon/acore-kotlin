@@ -13,17 +13,6 @@ softdepend: [ConditionalEvents, MythicMobs]
 
 libraries:
   - org.jetbrains.kotlin:kotlin-stdlib:2.3.0
-
-commands:
-  showinfo:
-    description: Toggleable bossbar
-    usage: /showinfo
-    permission: acore.showinfo
-  link:
-    description: Invite a player to become your referral
-    usage: /link <player>
-    permission: acore.link
-
 permissions:
   acore.showinfo:
     description: Permission for showinfo command
