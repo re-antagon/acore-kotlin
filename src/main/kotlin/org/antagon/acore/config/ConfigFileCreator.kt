@@ -10,11 +10,11 @@ class ConfigFileCreator(private val dataFolder: File, private val logger: Logger
     private val configFile: File
 
     init {
-        if (!dataFolder.exists()) {
+        if (!dataFolder.exists() || !dataFolder.isDirectory) {
             if (dataFolder.mkdirs()) {
-                logger.info("Created plugin data folder.")
-            } else {
-                logger.severe("Failed to create plugin data folder!")
+                logger.info("Created plugin data folder: ${dataFolder.absolutePath}")
+            } else if (!dataFolder.exists()) {
+                logger.severe("Failed to create plugin data folder at ${dataFolder.absolutePath}!")
             }
         }
 

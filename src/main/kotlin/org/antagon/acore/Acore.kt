@@ -17,6 +17,14 @@ class Acore : JavaPlugin() {
     private lateinit var referralManager: ReferralManager
 
     override fun onEnable() {
+        if (!dataFolder.exists()) {
+            if (dataFolder.mkdirs()) {
+                logger.info("Created plugin data folder: ${dataFolder.absolutePath}")
+            } else {
+                logger.severe("Failed to create plugin data folder at ${dataFolder.absolutePath}!")
+            }
+        }
+
         // Initialize config
         configManager = ConfigManager.initialize(dataFolder, logger)
 
