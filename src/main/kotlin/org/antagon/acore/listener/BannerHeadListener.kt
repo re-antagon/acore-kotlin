@@ -8,7 +8,9 @@ import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.ClickType
 import org.bukkit.event.inventory.InventoryClickEvent
+import io.papermc.paper.datacomponent.DataComponentTypes
 import org.bukkit.event.inventory.InventoryType
+import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.BannerMeta
 
@@ -35,8 +37,38 @@ class BannerHeadListener(private val config: ConfigManager) : Listener {
                 if (hotbarSlot in 0..8) {
                     val hotbarItem = player.inventory.getItem(hotbarSlot)
                     if (isBanner(hotbarItem) || isBanner(clickedItem)) {
-                        player.inventory.setItem(hotbarSlot, if (clickedItem != null && clickedItem.type != Material.AIR) clickedItem.clone() else ItemStack(Material.AIR))
-                        player.inventory.helmet = if (hotbarItem != null && hotbarItem.type != Material.AIR) hotbarItem.clone() else ItemStack(Material.AIR)
+                        if (!isWearable(hotbarItem)) {
+                            event.isCancelled = true
+                            return
+                        }
+
+                        if (hotbarItem != null && hotbarItem.type != Material.AIR) {
+                            val newHelmet = hotbarItem.clone()
+                            if (newHelmet.amount > 1) {
+                                val singleHelmet = newHelmet.clone()
+                                singleHelmet.amount = 1
+                                player.inventory.helmet = singleHelmet
+
+                                val remaining = newHelmet.clone()
+                                remaining.amount = newHelmet.amount - 1
+
+                                if (clickedItem != null && clickedItem.type != Material.AIR) {
+                                    player.inventory.setItem(hotbarSlot, clickedItem.clone())
+                                    val leftover = player.inventory.addItem(remaining)
+                                    for (item in leftover.values) {
+                                        player.world.dropItemNaturally(player.location, item)
+                                    }
+                                } else {
+                                    player.inventory.setItem(hotbarSlot, remaining)
+                                }
+                            } else {
+                                player.inventory.helmet = newHelmet
+                                player.inventory.setItem(hotbarSlot, if (clickedItem != null && clickedItem.type != Material.AIR) clickedItem.clone() else ItemStack(Material.AIR))
+                            }
+                        } else {
+                            player.inventory.helmet = ItemStack(Material.AIR)
+                            player.inventory.setItem(hotbarSlot, if (clickedItem != null && clickedItem.type != Material.AIR) clickedItem.clone() else ItemStack(Material.AIR))
+                        }
                         event.isCancelled = true
                         player.updateInventory()
                     }
@@ -102,6 +134,11 @@ class BannerHeadListener(private val config: ConfigManager) : Listener {
                     player.updateInventory()
                     return
                 } else {
+                    if (!isWearable(cursorItem)) {
+                        event.isCancelled = true
+                        return
+                    }
+
                     if (cursorItem.amount == 1) {
                         val newHelmet = cursorItem.clone()
                         player.inventory.helmet = newHelmet
@@ -183,5 +220,23 @@ class BannerHeadListener(private val config: ConfigManager) : Listener {
                type == Material.RED_BANNER ||
                type == Material.BLACK_BANNER ||
                (item.hasItemMeta() && item.itemMeta is BannerMeta)
+    }
+
+    private fun isWearable(item: ItemStack?): Boolean {
+        if (item == null || item.type == Material.AIR) {
+            return true
+        }
+        if (isBanner(item)) {
+            return true
+        }
+        val equippable = item.getData(DataComponentTypes.EQUIPPABLE)
+        if (equippable != null) {
+            return equippable.slot() == EquipmentSlot.HEAD
+        }
+        val name = item.type.name
+        return name.endsWith("_HELMET") ||
+               name.endsWith("_HEAD") ||
+               name.endsWith("_SKULL") ||
+               name == "CARVED_PUMPKIN"
     }
 }
