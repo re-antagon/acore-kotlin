@@ -10,7 +10,7 @@ import org.bukkit.block.BlockFace
 import org.bukkit.entity.Item
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.event.player.PlayerDropItemEvent
+import org.bukkit.event.entity.ItemSpawnEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
@@ -122,8 +122,8 @@ class StonecutterBlockProcessorListener(
      * Adds items to the tracking set if they match any craft input.
      */
     @EventHandler
-    fun onPlayerDropItem(event: PlayerDropItemEvent) {
-        val item = event.itemDrop
+    fun onItemSpawn(event: ItemSpawnEvent) {
+        val item = event.entity
         val type = item.itemStack.type
 
         if (crafts.any { it.matchesMaterial(type) }) {
