@@ -9,6 +9,8 @@ import org.bukkit.event.Listener
 import org.bukkit.event.entity.ProjectileLaunchEvent
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
+import io.papermc.paper.datacomponent.DataComponentTypes
+import net.kyori.adventure.text.Component
 
 /**
  * Listens for fog potion throws and displays last players who interacted with blocks in radius
@@ -93,10 +95,11 @@ class FogPotionListener(private val plugin: JavaPlugin, private val configManage
 
     private fun getCustomModelData(potion: ThrownPotion): Int {
         // Get Custom Model Data from the potion item to identify it as our fog potion
-        if (potion.item != null && potion.item!!.hasItemMeta()) {
-            val meta = potion.item!!.itemMeta
-            if (meta != null && meta.hasCustomModelData()) {
-                return meta.customModelData
+        val customModelDataComponent = potion.item.getData(DataComponentTypes.CUSTOM_MODEL_DATA)
+        if (customModelDataComponent != null) {
+            val firstFloat = customModelDataComponent.floats().firstOrNull()
+            if (firstFloat != null) {
+                return firstFloat.toInt()
             }
         }
 
@@ -104,8 +107,9 @@ class FogPotionListener(private val plugin: JavaPlugin, private val configManage
     }
 
     private fun showActionBarForDuration(player: Player, message: String, seconds: Int) {
+        val component = Component.text(message)
         // Show initial message
-        player.sendActionBar(message)
+        player.sendActionBar(component)
 
         if (seconds > 0) {
             // Schedule repeated messages
@@ -118,7 +122,7 @@ class FogPotionListener(private val plugin: JavaPlugin, private val configManage
                         return
                     }
 
-                    player.sendActionBar(message)
+                    player.sendActionBar(component)
                     remaining--
                 }
             }.runTaskTimer(plugin, 20L, 20L) // Every second

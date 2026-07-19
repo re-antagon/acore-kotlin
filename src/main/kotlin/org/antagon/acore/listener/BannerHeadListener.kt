@@ -98,9 +98,9 @@ class BannerHeadListener(private val config: ConfigManager) : Listener {
                     player.inventory.helmet = newHelmet
                     event.currentItem = newHelmet
                     if (current != null && current.type != Material.AIR) {
-                        event.setCursor(current.clone())
+                        event.view.setCursor(current.clone())
                     } else {
-                        event.setCursor(ItemStack(Material.AIR))
+                        event.view.setCursor(ItemStack(Material.AIR))
                     }
                 } else {
                     val singleBanner = cursor.clone()
@@ -110,7 +110,7 @@ class BannerHeadListener(private val config: ConfigManager) : Listener {
 
                     val remainingCursor = cursor.clone()
                     remainingCursor.amount = cursor.amount - 1
-                    event.setCursor(remainingCursor)
+                    event.view.setCursor(remainingCursor)
 
                     if (current != null && current.type != Material.AIR) {
                         val leftover = player.inventory.addItem(current.clone())
@@ -127,7 +127,7 @@ class BannerHeadListener(private val config: ConfigManager) : Listener {
             if (isBanner(clickedItem)) {
                 val current = clickedItem!!
                 if (cursorItem.type == Material.AIR) {
-                    event.setCursor(current.clone())
+                    event.view.setCursor(current.clone())
                     player.inventory.helmet = ItemStack(Material.AIR)
                     event.currentItem = ItemStack(Material.AIR)
                     event.isCancelled = true
@@ -143,7 +143,7 @@ class BannerHeadListener(private val config: ConfigManager) : Listener {
                         val newHelmet = cursorItem.clone()
                         player.inventory.helmet = newHelmet
                         event.currentItem = newHelmet
-                        event.setCursor(current.clone())
+                        event.view.setCursor(current.clone())
                     } else {
                         val newHelmet = cursorItem.clone()
                         newHelmet.amount = 1
@@ -152,7 +152,7 @@ class BannerHeadListener(private val config: ConfigManager) : Listener {
 
                         val remainingCursor = cursorItem.clone()
                         remainingCursor.amount = cursorItem.amount - 1
-                        event.setCursor(remainingCursor)
+                        event.view.setCursor(remainingCursor)
 
                         val leftover = player.inventory.addItem(current.clone())
                         for (item in leftover.values) {

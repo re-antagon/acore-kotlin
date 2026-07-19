@@ -10,6 +10,8 @@ import org.bukkit.event.Listener
 import org.bukkit.event.entity.ProjectileLaunchEvent
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
+import io.papermc.paper.datacomponent.DataComponentTypes
+import net.kyori.adventure.text.Component
 
 // Listens for indicator potion throws and displays players based on potion type
 class IndicatorPotionListener(private val plugin: JavaPlugin, private val configManager: ConfigManager) : Listener {
@@ -64,7 +66,7 @@ class IndicatorPotionListener(private val plugin: JavaPlugin, private val config
 
         if (blockTracker.isPlayerOnCooldown(player, cooldown)) {
             val remainingCooldown = blockTracker.getPlayerRemainingCooldown(player, cooldown)
-            player.sendActionBar("§cВы недавно использовали зелье! Подождите еще §e$remainingCooldown §cсекунд.")
+            player.sendActionBar(Component.text("§cВы недавно использовали зелье! Подождите еще §e$remainingCooldown §cсекунд."))
             event.isCancelled = true // Cancel the potion throw
             return
         }
@@ -114,20 +116,18 @@ class IndicatorPotionListener(private val plugin: JavaPlugin, private val config
     // Gets the potion type based on Custom Model Data, or null if not an indicator potion
     private fun getPotionType(potion: ThrownPotion): PotionType? {
         // Get Custom Model Data from the potion item
-        if (potion.item != null && potion.item!!.hasItemMeta()) {
-            val meta = potion.item!!.itemMeta
-            if (meta != null && meta.hasCustomModelData()) {
-                val cmd = meta.customModelData
-                
-                // Check each potion type
-                for (type in PotionType.entries) {
-                    val configCmd = configManager.getInt(
-                        "indicatorPotions.potions.${type.configKey}.custom-model-data",
-                        type.defaultCmd
-                    )
-                    if (cmd == configCmd) {
-                        return type
-                    }
+        val customModelDataComponent = potion.item.getData(DataComponentTypes.CUSTOM_MODEL_DATA)
+        if (customModelDataComponent != null) {
+            val cmd = customModelDataComponent.floats().firstOrNull()?.toInt() ?: -1
+            
+            // Check each potion type
+            for (type in PotionType.entries) {
+                val configCmd = configManager.getInt(
+                    "indicatorPotions.potions.${type.configKey}.custom-model-data",
+                    type.defaultCmd
+                )
+                if (cmd == configCmd) {
+                    return type
                 }
             }
         }
@@ -136,8 +136,9 @@ class IndicatorPotionListener(private val plugin: JavaPlugin, private val config
     }
 
     private fun showActionBarForDuration(player: Player, message: String, seconds: Int) {
+        val component = Component.text(message)
         // Show initial message
-        player.sendActionBar(message)
+        player.sendActionBar(component)
 
         if (seconds > 0) {
             // Schedule repeated messages
@@ -150,7 +151,7 @@ class IndicatorPotionListener(private val plugin: JavaPlugin, private val config
                         return
                     }
 
-                    player.sendActionBar(message)
+                    player.sendActionBar(component)
                     remaining--
                 }
             }.runTaskTimer(plugin, 20L, 20L) // Every second

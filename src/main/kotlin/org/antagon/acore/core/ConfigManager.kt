@@ -14,7 +14,7 @@ class ConfigManager private constructor(
     private val configFileCreator: ConfigFileCreator,
     private val configUpdater: ConfigUpdater
 ) : IConfig {
-    private lateinit var config: FileConfiguration
+    private var config: FileConfiguration
 
     init {
         val defaultConfig = configFileCreator.getDefaultConfig()

@@ -5,6 +5,8 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
+import io.papermc.paper.datacomponent.DataComponentTypes
+import io.papermc.paper.datacomponent.item.CustomModelData
 import java.util.logging.Logger
 
 class PlayerJoinListener : Listener {
@@ -40,11 +42,10 @@ class PlayerJoinListener : Listener {
 
         try {
             // Set custom model data
-            val meta = item.itemMeta
-            if (meta != null) {
-                meta.setCustomModelData(customModelData)
-                item.itemMeta = meta
-            }
+            val modelData = CustomModelData.customModelData()
+                .addFloat(customModelData.toFloat())
+                .build()
+            item.setData(DataComponentTypes.CUSTOM_MODEL_DATA, modelData)
 
             // Give item to player
             player.inventory.addItem(item)
