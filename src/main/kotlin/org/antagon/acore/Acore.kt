@@ -101,6 +101,16 @@ class Acore : JavaPlugin() {
             logger.info("Piston Launch Anvil Listener feature enabled")
         }
 
+        // Fire drops and lightning block conversions
+        if (configManager.getBoolean("fireAdjustment.enabled", true)) {
+            server.pluginManager.registerEvents(BlockBurnListener(configManager), this)
+            logger.info("Fire adjustment feature enabled")
+        }
+        if (configManager.getBoolean("lightningConversion.enabled", true)) {
+            server.pluginManager.registerEvents(LightningConversionListener(configManager), this)
+            logger.info("Lightning conversion feature enabled")
+        }
+
         // Register CopperOxidationListener if enabled in config
         if (configManager.getBoolean("copperOxidation.enabled", true)) {
             server.pluginManager.registerEvents(CopperOxidationListener(this, configManager), this)
