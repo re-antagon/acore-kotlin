@@ -21,7 +21,7 @@ class ReferralManager(private val plugin: JavaPlugin) {
         loadReferrals()
     }
 
-    // Load referrals from file
+    // Load referrals from file - FIXED: robust handling of Integer vs Long and missing sections
     private fun loadReferrals() {
         if (!referralFile.exists()) {
             try {
@@ -41,54 +41,88 @@ class ReferralManager(private val plugin: JavaPlugin) {
         referralConfig = YamlConfiguration.loadConfiguration(referralFile)
 
         // Load referrals map
-        val referralsMap = referralConfig.getConfigurationSection("referrals")?.getValues(false) ?: return
-        for ((key, value) in referralsMap) {
-            try {
-                val referralId = UUID.fromString(key)
-                val inviterId = UUID.fromString(value as String)
-                referrals[referralId] = inviterId
-            } catch (e: IllegalArgumentException) {
-                plugin.logger.warning("Invalid UUID in referrals file: $key -> $value")
+        referralConfig.getConfigurationSection("referrals")?.getValues(false)?.let { map ->
+            for ((key, value) in map) {
+                try {
+                    val referralId = UUID.fromString(key)
+                    val inviterStr = value as? String
+                    if (inviterStr == null) {
+                        plugin.logger.warning("Invalid value type in referrals file for $key: ${value?.javaClass?.name}")
+                        continue
+                    }
+                    val inviterId = UUID.fromString(inviterStr)
+                    referrals[referralId] = inviterId
+                } catch (e: Exception) {
+                    plugin.logger.warning("Invalid UUID in referrals file: $key -> $value (${e.message})")
+                }
             }
         }
 
         // Load inviter referrals map
-        val inviterMap = referralConfig.getConfigurationSection("inviter-referrals")?.getValues(false) ?: return
-        for ((key, value) in inviterMap) {
-            try {
-                val inviterId = UUID.fromString(key)
-                val referralIds = referralConfig.getStringList("inviter-referrals.$key")
-                val referralUUIDs = mutableListOf<UUID>()
-                for (id in referralIds) {
-                    referralUUIDs.add(UUID.fromString(id))
+        referralConfig.getConfigurationSection("inviter-referrals")?.let { section ->
+            for (key in section.getKeys(false)) {
+                try {
+                    val inviterId = UUID.fromString(key)
+                    val referralIds = section.getStringList(key)
+                    val referralUUIDs = mutableListOf<UUID>()
+                    for (id in referralIds) {
+                        try {
+                            referralUUIDs.add(UUID.fromString(id))
+                        } catch (ex: IllegalArgumentException) {
+                            plugin.logger.warning("Invalid referral UUID in inviter-referrals for $key: $id")
+                        }
+                    }
+                    if (referralUUIDs.isNotEmpty()) {
+                        inviterReferrals[inviterId] = referralUUIDs
+                    }
+                } catch (e: Exception) {
+                    plugin.logger.warning("Invalid UUID in inviter referrals file: $key (${e.message})")
                 }
-                inviterReferrals[inviterId] = referralUUIDs
-            } catch (e: IllegalArgumentException) {
-                plugin.logger.warning("Invalid UUID in inviter referrals file: $key")
             }
         }
 
         // Load start times
-        val startTimesMap = referralConfig.getConfigurationSection("referral-start-times")?.getValues(false) ?: return
-        for ((key, value) in startTimesMap) {
-            try {
-                val referralId = UUID.fromString(key)
-                val startTime = value as Long
-                referralStartTime[referralId] = startTime
-            } catch (e: IllegalArgumentException) {
-                plugin.logger.warning("Invalid UUID in referral start times file: $key")
+        referralConfig.getConfigurationSection("referral-start-times")?.getValues(false)?.let { map ->
+            for ((key, value) in map) {
+                try {
+                    val referralId = UUID.fromString(key)
+                    val startTime: Long? = when (value) {
+                        is Long -> value
+                        is Int -> value.toLong()
+                        is Number -> value.toLong() // covers Short, Byte, Double, etc.
+                        is String -> value.toLongOrNull()
+                        else -> null
+                    }
+                    if (startTime != null) {
+                        referralStartTime[referralId] = startTime
+                    } else {
+                        plugin.logger.warning("Invalid start time value for $key: $value (${value?.javaClass?.name})")
+                    }
+                } catch (e: Exception) {
+                    plugin.logger.warning("Invalid entry in referral start times file: $key (${e.message})")
+                }
             }
         }
 
         // Load rewarded status
-        val rewardedMap = referralConfig.getConfigurationSection("referral-rewarded")?.getValues(false) ?: return
-        for ((key, value) in rewardedMap) {
-            try {
-                val referralId = UUID.fromString(key)
-                val rewarded = value as Boolean
-                referralRewarded[referralId] = rewarded
-            } catch (e: IllegalArgumentException) {
-                plugin.logger.warning("Invalid UUID in referral rewarded file: $key")
+        referralConfig.getConfigurationSection("referral-rewarded")?.getValues(false)?.let { map ->
+            for ((key, value) in map) {
+                try {
+                    val referralId = UUID.fromString(key)
+                    val rewarded: Boolean? = when (value) {
+                        is Boolean -> value
+                        is String -> value.toBooleanStrictOrNull() ?: value.equals("true", ignoreCase = true)
+                        is Number -> value.toInt() != 0
+                        else -> null
+                    }
+                    if (rewarded != null) {
+                        referralRewarded[referralId] = rewarded
+                    } else {
+                        plugin.logger.warning("Invalid rewarded value for $key: $value (${value?.javaClass?.name})")
+                    }
+                } catch (e: Exception) {
+                    plugin.logger.warning("Invalid entry in referral rewarded file: $key (${e.message})")
+                }
             }
         }
 
