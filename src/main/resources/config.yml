@@ -239,3 +239,9 @@ copperOxidation:
   check-interval: 40
   # Radius in blocks to scan around each player for copper blocks
   scan-radius: 48
+
+# Server-enforced Xaero's Minimap fair-play mode
+xaeroFairPlay:
+  enabled: true
+  # Available modes: FAIR-PLAY-NETHER, FAIR-PLAY, FULL-DISABLE, NONE
+  mode: "FAIR-PLAY-NETHER"

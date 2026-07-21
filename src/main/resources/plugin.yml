@@ -9,7 +9,7 @@ website: https://reborn.antagon.su
 load: STARTUP
 
 depend: [LuckPerms]
-softdepend: [ConditionalEvents, MythicMobs]
+softdepend: [ConditionalEvents, MythicMobs, PacketEvents]
 
 libraries:
   - org.jetbrains.kotlin:kotlin-stdlib:2.3.0

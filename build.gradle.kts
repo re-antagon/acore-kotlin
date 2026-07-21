@@ -21,10 +21,12 @@ repositories {
     maven("https://oss.sonatype.org/content/groups/public/")
     maven("https://jitpack.io")
     maven("https://mvn.lumine.io/repository/maven-public/")
+    maven("https://repo.codemc.org/repository/maven-public/")
 }
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    compileOnly("com.github.retrooper:packetevents-spigot:2.7.0")    // PacketEvents API
     compileOnly("com.github.ajneb97:ConditionalEvents:4.65.1")       // Conditional Events api
     compileOnly("io.lumine:Mythic-Dist:5.9.5")                       // Mythic Mobs api
     compileOnly("net.luckperms:api:5.4")                             // LuckPerms api

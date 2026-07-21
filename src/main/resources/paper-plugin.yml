@@ -18,6 +18,9 @@ dependencies:
     MythicMobs:
       load: BEFORE
       required: false
+    PacketEvents:
+      load: BEFORE
+      required: false
 permissions:
   permission.admin:
     description: Permission for admin commands
@@ -26,6 +29,7 @@ permissions:
       - acore.showinfo
       - acore.link
       - acore.admin
+      - acore.fairplay.bypass
   acore.showinfo:
     description: Permission for showinfo command
     default: true
@@ -34,4 +38,7 @@ permissions:
     default: true
   acore.admin:
     description: Permission to reload the plugin and manage acore
+    default: op
+  acore.fairplay.bypass:
+    description: Permission to bypass Xaero's Minimap fairplay mode enforcement
     default: op

@@ -2,6 +2,7 @@ package org.antagon.acore
 
 import org.antagon.acore.commands.AcoreCommand
 import org.antagon.acore.core.ConfigManager
+import org.antagon.acore.fairplay.XaeroFairPlayManager
 import org.antagon.acore.listener.*
 import org.antagon.acore.util.BlockInteractionTracker
 import org.antagon.acore.util.EntityKillTracker
@@ -12,6 +13,12 @@ import org.bukkit.scheduler.BukkitRunnable
 class Acore : JavaPlugin() {
     private lateinit var configManager: ConfigManager
     private lateinit var referralManager: ReferralManager
+    private lateinit var xaeroFairPlayManager: XaeroFairPlayManager
+
+    override fun onLoad() {
+        xaeroFairPlayManager = XaeroFairPlayManager(this)
+        xaeroFairPlayManager.onLoad()
+    }
 
     override fun onEnable() {
         if (!dataFolder.exists()) {
@@ -24,6 +31,9 @@ class Acore : JavaPlugin() {
 
         // Initialize config
         configManager = ConfigManager.initialize(dataFolder, logger)
+
+        // Initialize PacketEvents / XaeroFairPlayManager
+        xaeroFairPlayManager.init()
 
         // Initialize referral manager
         referralManager = ReferralManager(this)
@@ -41,6 +51,13 @@ class Acore : JavaPlugin() {
     }
 
     private fun registerListeners() {
+        // Register XaeroFairPlayListener if enabled in config
+        if (configManager.getBoolean("xaeroFairPlay.enabled", true)) {
+            server.pluginManager.registerEvents(
+                XaeroFairPlayListener(this, xaeroFairPlayManager, configManager), this)
+            logger.info("Xaero's Minimap Fair-Play feature enabled")
+        }
+
         // Register VillagerTransportListener if enabled in config
         if (configManager.getBoolean("villagerTransport.enabled", true)) {
             server.pluginManager.registerEvents(
@@ -157,6 +174,7 @@ class Acore : JavaPlugin() {
     }
 
     override fun onDisable() {
+        xaeroFairPlayManager.terminate()
         // Plugin shutdown logic
         logger.info("Acore plugin has been disabled")
     }
