@@ -12,13 +12,15 @@ object MythicMobsHelper {
      * Returns null if MythicMobs is not installed or the item doesn't exist.
      */
     fun getMythicItem(mythicItemName: String): ItemStack? {
-        val mythicMobsPlugin = Bukkit.getPluginManager().getPlugin("MythicMobs")
-        if (mythicMobsPlugin == null) {
-            logger.warning("MythicMobs plugin not found, cannot get mythic item: $mythicItemName")
-            return null
-        }
+        return DependencyHandler.executeSafely(
+            dependencyName = "MythicMobs",
+            featureName = "Get MythicMobs Item '$mythicItemName'",
+            fallback = null,
+            logger = logger
+        ) {
+            val mythicMobsPlugin = Bukkit.getPluginManager().getPlugin("MythicMobs")
+                ?: return@executeSafely null
 
-        try {
             val mythicBukkitClass = try {
                 Class.forName("io.lumine.mythic.bukkit.MythicBukkit", true, mythicMobsPlugin.javaClass.classLoader)
             } catch (e: ClassNotFoundException) {
@@ -26,16 +28,13 @@ object MythicMobsHelper {
             }
 
             val instMethod = mythicBukkitClass.getMethod("inst")
-            val mythicBukkit = instMethod.invoke(null) ?: return null
+            val mythicBukkit = instMethod.invoke(null) ?: return@executeSafely null
 
             val getItemManagerMethod = mythicBukkitClass.getMethod("getItemManager")
-            val itemManager = getItemManagerMethod.invoke(mythicBukkit) ?: return null
+            val itemManager = getItemManagerMethod.invoke(mythicBukkit) ?: return@executeSafely null
 
             val getItemStackMethod = itemManager.javaClass.getMethod("getItemStack", String::class.java)
-            return getItemStackMethod.invoke(itemManager, mythicItemName) as ItemStack?
-        } catch (e: Exception) {
-            logger.severe("Error retrieving MythicMobs item '$mythicItemName': ${e.message}")
-            return null
+            getItemStackMethod.invoke(itemManager, mythicItemName) as ItemStack?
         }
     }
 }

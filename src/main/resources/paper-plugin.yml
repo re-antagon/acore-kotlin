@@ -11,7 +11,7 @@ dependencies:
   server:
     LuckPerms:
       load: BEFORE
-      required: true
+      required: false
     ConditionalEvents:
       load: BEFORE
       required: false

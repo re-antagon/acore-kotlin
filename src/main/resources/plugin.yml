@@ -8,8 +8,7 @@ api-version: '1.21'
 website: https://reborn.antagon.su
 load: STARTUP
 
-depend: [LuckPerms]
-softdepend: [ConditionalEvents, MythicMobs, PacketEvents]
+softdepend: [LuckPerms, ConditionalEvents, MythicMobs, PacketEvents]
 
 libraries:
   - org.jetbrains.kotlin:kotlin-stdlib:2.3.0

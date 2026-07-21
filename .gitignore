@@ -120,3 +120,5 @@ runs/
 
 # Visual Studio Code configuration
 .vscode
+bin/
+*.bak

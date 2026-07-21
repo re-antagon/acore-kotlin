@@ -4,7 +4,7 @@ import com.github.retrooper.packetevents.PacketEvents
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSystemChatMessage
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder
 import net.kyori.adventure.text.Component
-import org.bukkit.Bukkit
+import org.antagon.acore.util.DependencyHandler
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import java.util.logging.Logger
@@ -38,23 +38,27 @@ class XaeroFairPlayManager(private val plugin: JavaPlugin) {
     private var isLoaded = false
 
     private fun isPacketEventsAvailable(): Boolean {
-        return try {
-            Bukkit.getPluginManager().isPluginEnabled("PacketEvents")
-        } catch (e: Throwable) {
-            false
-        }
+        return DependencyHandler.isPluginEnabled("PacketEvents")
     }
 
     fun onLoad() {
         if (isPacketEventsAvailable()) {
-            try {
+            val success = DependencyHandler.executeSafely(
+                dependencyName = "PacketEvents",
+                featureName = "PacketEvents API Load",
+                fallback = false,
+                logger = logger
+            ) {
                 PacketEvents.setAPI(SpigotPacketEventsBuilder.build(plugin))
                 PacketEvents.getAPI().load()
-                isLoaded = true
+                true
+            } ?: false
+
+            isLoaded = success
+            if (isLoaded) {
                 logger.info("XaeroFairPlay: PacketEvents API loaded.")
-            } catch (e: Throwable) {
-                isLoaded = false
-                logger.warning("XaeroFairPlay: Could not load PacketEvents API (${e.message}). Falling back to Bukkit message sending.")
+            } else {
+                logger.warning("XaeroFairPlay: Could not load PacketEvents API. Falling back to Bukkit message sending.")
             }
         } else {
             logger.warning("XaeroFairPlay: PacketEvents plugin is not installed on server. Will use Bukkit fallback message sending.")
@@ -63,13 +67,21 @@ class XaeroFairPlayManager(private val plugin: JavaPlugin) {
 
     fun init() {
         if (isPacketEventsAvailable() && isLoaded) {
-            try {
+            val success = DependencyHandler.executeSafely(
+                dependencyName = "PacketEvents",
+                featureName = "PacketEvents API Init",
+                fallback = false,
+                logger = logger
+            ) {
                 PacketEvents.getAPI().init()
-                usePacketEvents = true
+                true
+            } ?: false
+
+            usePacketEvents = success
+            if (usePacketEvents) {
                 logger.info("XaeroFairPlay: PacketEvents API initialized successfully.")
-            } catch (e: Throwable) {
-                usePacketEvents = false
-                logger.warning("XaeroFairPlay: Could not init PacketEvents API (${e.message}). Falling back to Bukkit message sending.")
+            } else {
+                logger.warning("XaeroFairPlay: Could not init PacketEvents API. Falling back to Bukkit message sending.")
             }
         } else {
             usePacketEvents = false
@@ -78,10 +90,13 @@ class XaeroFairPlayManager(private val plugin: JavaPlugin) {
 
     fun terminate() {
         if (usePacketEvents) {
-            try {
+            DependencyHandler.executeSafely(
+                dependencyName = "PacketEvents",
+                featureName = "PacketEvents API Terminate",
+                fallback = null,
+                logger = logger
+            ) {
                 PacketEvents.getAPI().terminate()
-            } catch (e: Throwable) {
-                // Ignore errors during plugin shutdown
             }
         }
     }
@@ -91,14 +106,19 @@ class XaeroFairPlayManager(private val plugin: JavaPlugin) {
         val code = mode.code ?: return
 
         if (usePacketEvents) {
-            try {
+            val sent = DependencyHandler.executeSafely(
+                dependencyName = "PacketEvents",
+                featureName = "Send FairPlay Packet",
+                fallback = false,
+                logger = logger
+            ) {
                 val protocolManager = PacketEvents.getAPI().protocolManager
                 val packet = WrapperPlayServerSystemChatMessage(false, Component.text(code))
                 protocolManager.sendPacketSilently(protocolManager.getChannel(player.uniqueId), packet)
-                return
-            } catch (e: Throwable) {
-                logger.warning("XaeroFairPlay: Failed sending packet via PacketEvents to ${player.name} (${e.message}). Falling back to Bukkit message.")
-            }
+                true
+            } ?: false
+
+            if (sent) return
         }
 
         // Fallback using Bukkit / Adventure player.sendMessage

@@ -15,6 +15,8 @@ import org.antagon.acore.core.ConfigManager
 import org.antagon.acore.util.ReferralManager
 import org.bukkit.entity.Player
 
+import org.antagon.acore.util.DependencyHandler
+
 class AcoreCommand(
     private val plugin: Acore,
     private val configManager: ConfigManager,
@@ -47,43 +49,52 @@ class AcoreCommand(
                 listOf("ac")
             )
 
-            // 2. Register /showinfo
-            commands.register(
-                Commands.literal("showinfo")
-                    .requires { source -> source.sender.hasPermission("acore.showinfo") }
-                    .executes { ctx ->
-                        val sender = ctx.source.sender
-                        if (sender !is Player) {
-                            sender.sendMessage("§cЭта команда доступна только игрокам!")
-                            return@executes 1
-                        }
+            // 2. Register /showinfo (only if LuckPerms is available)
+            if (DependencyHandler.isPluginEnabled("LuckPerms")) {
+                commands.register(
+                    Commands.literal("showinfo")
+                        .requires { source -> source.sender.hasPermission("acore.showinfo") }
+                        .executes { ctx ->
+                            val sender = ctx.source.sender
+                            if (sender !is Player) {
+                                sender.sendMessage("§cЭта команда доступна только игрокам!")
+                                return@executes 1
+                            }
 
-                        val player = sender
-                        val hasPermission = player.hasPermission("bossbar.show")
+                            val player = sender
+                            val hasPermission = player.hasPermission("bossbar.show")
 
-                        val luckPerms = LuckPermsProvider.get()
-                        val user = luckPerms.userManager.getUser(player.uniqueId)
-                        if (user == null) {
-                            player.sendMessage("§cОшибка: данные LuckPerms еще не загружены!")
-                            return@executes 1
-                        }
+                            val luckPerms = DependencyHandler.getLuckPerms()
+                            if (luckPerms == null) {
+                                player.sendMessage("§cОшибка: данные LuckPerms еще не загружены!")
+                                return@executes 1
+                            }
 
-                        if (hasPermission) {
-                            val node = PermissionNode.builder("bossbar.show").value(false).build()
-                            user.data().add(node)
-                            luckPerms.userManager.saveUser(user)
-                            player.sendMessage("§cBossbar отключен!")
-                        } else {
-                            val node = PermissionNode.builder("bossbar.show").value(true).build()
-                            user.data().add(node)
-                            luckPerms.userManager.saveUser(user)
-                            player.sendMessage("§aBossbar включен!")
+                            val user = luckPerms.userManager.getUser(player.uniqueId)
+                            if (user == null) {
+                                player.sendMessage("§cОшибка: данные LuckPerms еще не загружены!")
+                                return@executes 1
+                            }
+
+                            if (hasPermission) {
+                                val node = PermissionNode.builder("bossbar.show").value(false).build()
+                                user.data().add(node)
+                                luckPerms.userManager.saveUser(user)
+                                player.sendMessage("§cBossbar отключен!")
+                            } else {
+                                val node = PermissionNode.builder("bossbar.show").value(true).build()
+                                user.data().add(node)
+                                luckPerms.userManager.saveUser(user)
+                                player.sendMessage("§aBossbar включен!")
+                            }
+                            1
                         }
-                        1
-                    }
-                    .build(),
-                "Toggleable bossbar"
-            )
+                        .build(),
+                    "Toggleable bossbar"
+                )
+            } else {
+                plugin.logger.warning("LuckPerms is missing or disabled. Command '/showinfo' will not be registered.")
+            }
 
             // 3. Register /link <player>
             commands.register(
