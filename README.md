@@ -1,8 +1,8 @@
 <p align="left">
     <a href="https://www.gnu.org/licenses/gpl-3.0" alt=GPLv3>
         <img src="https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square" /></a>
-    <a href="https://github.com/PurpleGale/acore/pulse" alt="Activity">
-        <img src="https://img.shields.io/github/commit-activity/m/Aquobus/AntagonCore?style=flat-square" /></a>
+    <a href="https://github.com/re-antagon/acore-kotlin/pulse" alt="Activity">
+        <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/re-antagon/acore-kotlin?style=flat-square">
     <a href="https://discord.antagon.su">
         <img src="https://img.shields.io/discord/1285588070497910896?style=flat-square&logo=discord&logoColor=white"
             alt="Chat on Discord"></a>
