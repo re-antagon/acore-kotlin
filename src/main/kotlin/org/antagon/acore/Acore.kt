@@ -10,6 +10,8 @@ import org.antagon.acore.util.ReferralManager
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
 
+import org.antagon.acore.util.DependencyHandler
+
 class Acore : JavaPlugin() {
     private lateinit var configManager: ConfigManager
     private lateinit var referralManager: ReferralManager
@@ -28,6 +30,9 @@ class Acore : JavaPlugin() {
                 logger.severe("Failed to create plugin data folder at ${dataFolder.absolutePath}!")
             }
         }
+
+        // Check optional dependencies
+        checkOptionalDependencies()
 
         // Initialize config
         configManager = ConfigManager.initialize(dataFolder, logger)
@@ -138,6 +143,12 @@ class Acore : JavaPlugin() {
             server.pluginManager.registerEvents(CopperOxidationListener(this, configManager), this)
             logger.info("Copper Oxidation acceleration feature enabled")
         }
+
+        // Register MultishotCrossbowListener if enabled in config
+        if (configManager.getBoolean("multishotImprovement.enabled", true)) {
+            server.pluginManager.registerEvents(MultishotCrossbowListener(this, configManager), this)
+            logger.info("Multishot Crossbow damage improvement feature enabled")
+        }
     }
 
     private fun startCleanupTask() {
@@ -171,6 +182,17 @@ class Acore : JavaPlugin() {
         startCleanupTask()
 
         logger.info("Acore plugin has been reloaded successfully!")
+    }
+
+    private fun checkOptionalDependencies() {
+        val softDeps = listOf("LuckPerms", "ConditionalEvents", "MythicMobs", "PacketEvents")
+        for (dep in softDeps) {
+            if (DependencyHandler.isPluginEnabled(dep)) {
+                logger.info("Optional dependency '$dep' found and enabled.")
+            } else {
+                logger.info("Optional dependency '$dep' not found. Related features will be safely disabled.")
+            }
+        }
     }
 
     override fun onDisable() {

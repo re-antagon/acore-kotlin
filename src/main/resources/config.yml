@@ -245,3 +245,13 @@ xaeroFairPlay:
   enabled: true
   # Available modes: FAIR-PLAY-NETHER, FAIR-PLAY, FULL-DISABLE, NONE
   mode: "FAIR-PLAY-NETHER"
+
+# Multishot Crossbow damage improvement - scales damage for point-blank hits (1.0x, 1.8x, 2.7x)
+multishotImprovement:
+  enabled: true
+  firstArrowMultiplier: 1.0
+  secondArrowMultiplier: 0.8
+  thirdArrowMultiplier: 0.9
+  expirationTicks: 40
+
+
