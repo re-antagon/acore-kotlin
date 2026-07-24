@@ -12,6 +12,7 @@ softdepend: [LuckPerms, ConditionalEvents, MythicMobs, PacketEvents]
 
 libraries:
   - org.jetbrains.kotlin:kotlin-stdlib:2.3.0
+  - org.reflections:reflections:0.10.2
 permissions:
   acore.showinfo:
     description: Permission for showinfo command
