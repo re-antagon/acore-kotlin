@@ -1,5 +1,6 @@
 package org.antagon.acore.listener
 
+import org.antagon.acore.Acore
 import org.antagon.acore.core.ConfigManager
 import org.antagon.acore.module.AcoreModule
 import org.bukkit.Bukkit
@@ -19,7 +20,7 @@ import org.bukkit.plugin.java.JavaPlugin
 import java.util.concurrent.ConcurrentHashMap
 
 class MultishotCrossbowListener(
-    private val plugin: JavaPlugin,
+    private val plugin: JavaPlugin = Acore.instance,
     private val config: ConfigManager = ConfigManager.getInstance()
 ) : AcoreModule, Listener {
 

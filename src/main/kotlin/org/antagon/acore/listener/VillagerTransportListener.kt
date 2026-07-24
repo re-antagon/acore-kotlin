@@ -14,7 +14,7 @@ import org.bukkit.scheduler.BukkitRunnable
 import java.util.logging.Logger
 
 class VillagerTransportListener(
-    private val plugin: Acore,
+    private val plugin: Acore = Acore.instance,
     private val configManager: ConfigManager = ConfigManager.getInstance()
 ) : AcoreModule, Listener {
 

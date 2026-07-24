@@ -1,5 +1,6 @@
 package org.antagon.acore.listener
 
+import org.antagon.acore.Acore
 import org.antagon.acore.core.ConfigManager
 import org.antagon.acore.fairplay.XaeroFairPlayManager
 import org.antagon.acore.module.AcoreModule
@@ -12,8 +13,8 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.plugin.java.JavaPlugin
 
 class XaeroFairPlayListener(
-    private val plugin: JavaPlugin,
-    private val manager: XaeroFairPlayManager,
+    private val plugin: JavaPlugin = Acore.instance,
+    private val manager: XaeroFairPlayManager = Acore.instance.xaeroFairPlayManager,
     private val configManager: ConfigManager = ConfigManager.getInstance()
 ) : AcoreModule, Listener {
 

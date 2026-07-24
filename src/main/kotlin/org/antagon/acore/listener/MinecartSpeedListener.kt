@@ -1,5 +1,6 @@
 package org.antagon.acore.listener
 
+import org.antagon.acore.Acore
 import org.antagon.acore.core.ConfigManager
 import org.antagon.acore.module.AcoreModule
 import org.antagon.acore.util.MaterialValidator
@@ -19,7 +20,7 @@ import java.util.*
 import java.util.logging.Logger
 
 class MinecartSpeedListener(
-    private val plugin: Plugin,
+    private val plugin: Plugin = Acore.instance,
     private val configManager: ConfigManager = ConfigManager.getInstance()
 ) : AcoreModule, Listener {
 

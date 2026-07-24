@@ -1,5 +1,6 @@
 package org.antagon.acore.listener
 
+import org.antagon.acore.Acore
 import org.antagon.acore.module.AcoreModule
 import org.antagon.acore.util.EntityKillTracker
 import org.bukkit.event.EventHandler
@@ -9,7 +10,7 @@ import org.bukkit.plugin.Plugin
 
 // Listens for player entity kills to track them for indicator potion feature
 class EntityKillListener(
-    private val plugin: Plugin
+    private val plugin: Plugin = Acore.instance
 ) : AcoreModule, Listener {
 
     override val name: String = "Entity Kill Tracker"

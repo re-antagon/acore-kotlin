@@ -1,5 +1,6 @@
 package org.antagon.acore.listener
 
+import org.antagon.acore.Acore
 import org.antagon.acore.core.ConfigManager
 import org.antagon.acore.module.AcoreModule
 import org.antagon.acore.util.BlockInteractionTracker
@@ -17,7 +18,7 @@ import net.kyori.adventure.text.Component
  * Listens for fog potion throws and displays last players who interacted with blocks in radius
  */
 class FogPotionListener(
-    private val plugin: JavaPlugin,
+    private val plugin: JavaPlugin = Acore.instance,
     private val configManager: ConfigManager = ConfigManager.getInstance()
 ) : AcoreModule, Listener {
 

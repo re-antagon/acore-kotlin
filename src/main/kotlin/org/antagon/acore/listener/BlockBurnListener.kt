@@ -1,5 +1,6 @@
 package org.antagon.acore.listener
 
+import org.antagon.acore.Acore
 import org.antagon.acore.core.ConfigManager
 import org.antagon.acore.module.AcoreModule
 import org.bukkit.Material
@@ -11,7 +12,7 @@ import org.bukkit.plugin.Plugin
 import kotlin.random.Random
 
 class BlockBurnListener(
-    private val plugin: Plugin,
+    private val plugin: Plugin = Acore.instance,
     private val config: ConfigManager = ConfigManager.getInstance()
 ) : AcoreModule, Listener {
 
