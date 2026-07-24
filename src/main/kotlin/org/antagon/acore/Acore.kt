@@ -149,6 +149,12 @@ class Acore : JavaPlugin() {
             server.pluginManager.registerEvents(MultishotCrossbowListener(this, configManager), this)
             logger.info("Multishot Crossbow damage improvement feature enabled")
         }
+
+        // Register SoulSoilTillListener if enabled in config
+        if (configManager.getBoolean("soulSoilTill.enabled", true)) {
+            server.pluginManager.registerEvents(SoulSoilTillListener(configManager), this)
+            logger.info("Soul Soil Till feature enabled")
+        }
     }
 
     private fun startCleanupTask() {

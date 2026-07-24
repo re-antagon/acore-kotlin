@@ -254,4 +254,10 @@ multishotImprovement:
   thirdArrowMultiplier: 0.9
   expirationTicks: 40
 
+# Soul Soil Till feature - allows converting SOUL_SOIL to SOUL_SAND with a hoe
+soulSoilTill:
+  enabled: true
+  requireHoe: true
+
+
 
