@@ -1,6 +1,7 @@
 package org.antagon.acore.listener
 
 import org.antagon.acore.core.ConfigManager
+import org.antagon.acore.module.AcoreModule
 import org.antagon.acore.util.BlockInteractionTracker
 import org.antagon.acore.util.EntityKillTracker
 import org.bukkit.entity.Player
@@ -14,7 +15,20 @@ import io.papermc.paper.datacomponent.DataComponentTypes
 import net.kyori.adventure.text.Component
 
 // Listens for indicator potion throws and displays players based on potion type
-class IndicatorPotionListener(private val plugin: JavaPlugin, private val configManager: ConfigManager) : Listener {
+class IndicatorPotionListener(
+    private val plugin: JavaPlugin,
+    private val configManager: ConfigManager = ConfigManager.getInstance()
+) : AcoreModule, Listener {
+
+    override val name: String = "Indicator Potions"
+
+    override fun shouldEnable(): Boolean {
+        return configManager.getBoolean("indicatorPotions.enabled", true)
+    }
+
+    override fun enable() {
+        registerEvents(plugin)
+    }
 
     private val blockTracker = BlockInteractionTracker.getInstance()
     private val entityTracker = EntityKillTracker.getInstance()

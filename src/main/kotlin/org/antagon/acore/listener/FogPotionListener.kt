@@ -1,6 +1,7 @@
 package org.antagon.acore.listener
 
 import org.antagon.acore.core.ConfigManager
+import org.antagon.acore.module.AcoreModule
 import org.antagon.acore.util.BlockInteractionTracker
 import org.bukkit.entity.Player
 import org.bukkit.entity.ThrownPotion
@@ -15,7 +16,20 @@ import net.kyori.adventure.text.Component
 /**
  * Listens for fog potion throws and displays last players who interacted with blocks in radius
  */
-class FogPotionListener(private val plugin: JavaPlugin, private val configManager: ConfigManager) : Listener {
+class FogPotionListener(
+    private val plugin: JavaPlugin,
+    private val configManager: ConfigManager = ConfigManager.getInstance()
+) : AcoreModule, Listener {
+
+    override val name: String = "Fog Potion"
+
+    override fun shouldEnable(): Boolean {
+        return configManager.getBoolean("fogPotion.enabled", true)
+    }
+
+    override fun enable() {
+        registerEvents(plugin)
+    }
 
     private val tracker = BlockInteractionTracker.getInstance()
 

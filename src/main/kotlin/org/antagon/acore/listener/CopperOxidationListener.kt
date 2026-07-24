@@ -1,6 +1,7 @@
 package org.antagon.acore.listener
 
 import org.antagon.acore.core.ConfigManager
+import org.antagon.acore.module.AcoreModule
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.Sound
@@ -9,21 +10,24 @@ import org.bukkit.block.BlockFace
 import org.bukkit.block.data.Waterlogged
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
+import org.bukkit.scheduler.BukkitTask
 import org.bukkit.event.Listener
 import java.util.logging.Logger
 
 class CopperOxidationListener(
     private val plugin: JavaPlugin,
-    private val configManager: ConfigManager
-) : Listener {
+    private val configManager: ConfigManager = ConfigManager.getInstance()
+) : AcoreModule, Listener {
+
+    override val name: String = "Copper Oxidation Acceleration"
 
     private val logger = Logger.getLogger(CopperOxidationListener::class.java.name)
 
-    private val enabled: Boolean
     private val waterMultiplier: Double
     private val rainMultiplier: Double
     private val checkInterval: Long
     private val scanRadius: Int
+    private var task: BukkitTask? = null
 
     // Map of copper material -> next oxidation stage
     private val oxidationStages: Map<Material, Material> = mutableMapOf<Material, Material>().apply {
@@ -68,20 +72,29 @@ class CopperOxidationListener(
     }.toMap()
 
     init {
-        enabled = configManager.getBoolean("copperOxidation.enabled", true)
         waterMultiplier = configManager.getDouble("copperOxidation.water-speed-multiplier", 4.0)
         rainMultiplier = configManager.getDouble("copperOxidation.rain-speed-multiplier", 2.0)
         checkInterval = configManager.getInt("copperOxidation.check-interval", 40).toLong()
         scanRadius = configManager.getInt("copperOxidation.scan-radius", 48)
+    }
 
-        if (enabled) {
-            startOxidationTask()
-            logger.info("Copper Oxidation acceleration task started (interval: ${checkInterval} ticks)")
-        }
+    override fun shouldEnable(): Boolean {
+        return configManager.getBoolean("copperOxidation.enabled", true)
+    }
+
+    override fun enable() {
+        registerEvents(plugin)
+        startOxidationTask()
+    }
+
+    override fun disable() {
+        super.disable()
+        task?.cancel()
+        task = null
     }
 
     private fun startOxidationTask() {
-        object : BukkitRunnable() {
+        task = object : BukkitRunnable() {
             override fun run() {
                 accelerateCopperOxidation()
             }
@@ -89,8 +102,6 @@ class CopperOxidationListener(
     }
 
     private fun accelerateCopperOxidation() {
-        if (!enabled) return
-
         val onlinePlayers = Bukkit.getOnlinePlayers()
         if (onlinePlayers.isEmpty()) return
 

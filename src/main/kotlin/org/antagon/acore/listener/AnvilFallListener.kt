@@ -1,5 +1,7 @@
 package org.antagon.acore.listener
 
+import org.antagon.acore.core.ConfigManager
+import org.antagon.acore.module.AcoreModule
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -15,7 +17,20 @@ import org.bukkit.persistence.PersistentDataType
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.util.Vector
 
-class AnvilFallListener(private val plugin: JavaPlugin) : Listener {
+class AnvilFallListener(
+    private val plugin: JavaPlugin,
+    private val configManager: ConfigManager = ConfigManager.getInstance()
+) : AcoreModule, Listener {
+
+    override val name: String = "Anvil Fall Listener"
+
+    override fun shouldEnable(): Boolean {
+        return configManager.getBoolean("anvilFall.enabled", true)
+    }
+
+    override fun enable() {
+        registerEvents(plugin)
+    }
 
     private val startYKey = NamespacedKey(plugin, "anvil_start_y")
     private val anvils = setOf(Material.ANVIL, Material.CHIPPED_ANVIL, Material.DAMAGED_ANVIL)

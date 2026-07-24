@@ -1,6 +1,7 @@
 package org.antagon.acore.listener
 
-import org.antagon.acore.api.IConfig
+import org.antagon.acore.core.ConfigManager
+import org.antagon.acore.module.AcoreModule
 import org.antagon.acore.util.MythicMobsHelper
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -19,8 +20,18 @@ import java.util.HashSet
 
 class StonecutterBlockProcessorListener(
     private val plugin: JavaPlugin,
-    private val config: IConfig
-) : Listener {
+    private val config: ConfigManager = ConfigManager.getInstance()
+) : AcoreModule, Listener {
+
+    override val name: String = "Stonecutter Block Processor"
+
+    override fun shouldEnable(): Boolean {
+        return config.getBoolean("stonecutterBlockProcessor.enabled", true)
+    }
+
+    override fun enable() {
+        registerEvents(plugin)
+    }
 
     private val trackedItems: MutableSet<Item> = HashSet()
     private val crafts = ArrayList<BlockProcessorCraft>()

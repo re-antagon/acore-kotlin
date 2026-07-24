@@ -1,5 +1,7 @@
 package org.antagon.acore.listener
 
+import org.antagon.acore.core.ConfigManager
+import org.antagon.acore.module.AcoreModule
 import org.antagon.acore.util.ReferralManager
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
@@ -8,16 +10,35 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
+import org.bukkit.scheduler.BukkitTask
 
-class ReferralListener(private val plugin: JavaPlugin, private val referralManager: ReferralManager) : Listener {
+class ReferralListener(
+    private val plugin: JavaPlugin,
+    private val referralManager: ReferralManager,
+    private val configManager: ConfigManager = ConfigManager.getInstance()
+) : AcoreModule, Listener {
 
-    init {
-        // Start scheduled task to check referral time every minute
+    override val name: String = "Referrals"
+
+    private var task: BukkitTask? = null
+
+    override fun shouldEnable(): Boolean {
+        return configManager.getBoolean("referrals.enabled", true)
+    }
+
+    override fun enable() {
+        registerEvents(plugin)
         startReferralTimeChecker()
     }
 
+    override fun disable() {
+        super.disable()
+        task?.cancel()
+        task = null
+    }
+
     private fun startReferralTimeChecker() {
-        object : BukkitRunnable() {
+        task = object : BukkitRunnable() {
             override fun run() {
                 checkReferralTimes()
             }

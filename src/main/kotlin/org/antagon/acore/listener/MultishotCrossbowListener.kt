@@ -1,6 +1,7 @@
 package org.antagon.acore.listener
 
-import org.antagon.acore.api.IConfig
+import org.antagon.acore.core.ConfigManager
+import org.antagon.acore.module.AcoreModule
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -19,8 +20,18 @@ import java.util.concurrent.ConcurrentHashMap
 
 class MultishotCrossbowListener(
     private val plugin: JavaPlugin,
-    private val config: IConfig
-) : Listener {
+    private val config: ConfigManager = ConfigManager.getInstance()
+) : AcoreModule, Listener {
+
+    override val name: String = "Multishot Crossbow Improvement"
+
+    override fun shouldEnable(): Boolean {
+        return config.getBoolean("multishotImprovement.enabled", true)
+    }
+
+    override fun enable() {
+        registerEvents(plugin)
+    }
 
     private val shotKey = NamespacedKey(plugin, "multishot_shot_id")
     private val burstHits: MutableMap<String, Int> = ConcurrentHashMap()

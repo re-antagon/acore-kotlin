@@ -1,5 +1,7 @@
 package org.antagon.acore.listener
 
+import org.antagon.acore.core.ConfigManager
+import org.antagon.acore.module.AcoreModule
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
@@ -19,7 +21,20 @@ import org.bukkit.persistence.PersistentDataType
 import org.bukkit.plugin.Plugin
 import org.bukkit.util.Vector
 
-class PistonLaunchAnvilListener(private val plugin: Plugin) : Listener {
+class PistonLaunchAnvilListener(
+    private val plugin: Plugin,
+    private val configManager: ConfigManager = ConfigManager.getInstance()
+) : AcoreModule, Listener {
+
+    override val name: String = "Piston Launch Anvil"
+
+    override fun shouldEnable(): Boolean {
+        return configManager.getBoolean("pistonLaunchAnvil.enabled", true)
+    }
+
+    override fun enable() {
+        registerEvents(plugin)
+    }
 
     private val startYKey = NamespacedKey(plugin, "anvil_start_y")
     private val activeVoids = mutableMapOf<Location, BlockData>()

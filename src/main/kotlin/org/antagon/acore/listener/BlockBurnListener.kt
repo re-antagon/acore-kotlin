@@ -1,14 +1,29 @@
 package org.antagon.acore.listener
 
 import org.antagon.acore.core.ConfigManager
+import org.antagon.acore.module.AcoreModule
 import org.bukkit.Material
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockBurnEvent
 import org.bukkit.inventory.ItemStack
+import org.bukkit.plugin.Plugin
 import kotlin.random.Random
 
-class BlockBurnListener(private val config: ConfigManager) : Listener {
+class BlockBurnListener(
+    private val plugin: Plugin,
+    private val config: ConfigManager = ConfigManager.getInstance()
+) : AcoreModule, Listener {
+
+    override val name: String = "Fire Adjustment"
+
+    override fun shouldEnable(): Boolean {
+        return config.getBoolean("fireAdjustment.enabled", true)
+    }
+
+    override fun enable() {
+        registerEvents(plugin)
+    }
     private data class Drop(val item: Material, val min: Int, val max: Int, val chance: Double)
     private val drops = mutableMapOf<Material, Drop>()
 

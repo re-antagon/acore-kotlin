@@ -1,6 +1,7 @@
 package org.antagon.acore.listener
 
-import org.antagon.acore.api.IConfig
+import org.antagon.acore.core.ConfigManager
+import org.antagon.acore.module.AcoreModule
 import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.Sound
@@ -12,10 +13,22 @@ import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.EquipmentSlot
+import org.bukkit.plugin.Plugin
 
 class SoulSoilTillListener(
-    private val config: IConfig
-) : Listener {
+    private val plugin: Plugin,
+    private val config: ConfigManager = ConfigManager.getInstance()
+) : AcoreModule, Listener {
+
+    override val name: String = "Soul Soil Till"
+
+    override fun shouldEnable(): Boolean {
+        return config.getBoolean("soulSoilTill.enabled", true)
+    }
+
+    override fun enable() {
+        registerEvents(plugin)
+    }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun onPlayerInteract(event: PlayerInteractEvent) {

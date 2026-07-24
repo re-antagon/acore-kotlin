@@ -1,6 +1,7 @@
 package org.antagon.acore.listener
 
 import org.antagon.acore.core.ConfigManager
+import org.antagon.acore.module.AcoreModule
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -13,14 +14,25 @@ import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.BannerMeta
+import org.bukkit.plugin.Plugin
 
-class BannerHeadListener(private val config: ConfigManager) : Listener {
+class BannerHeadListener(
+    private val plugin: Plugin,
+    private val config: ConfigManager = ConfigManager.getInstance()
+) : AcoreModule, Listener {
+
+    override val name: String = "Banner Head"
+
+    override fun shouldEnable(): Boolean {
+        return config.getBoolean("bannerHead.enabled", true)
+    }
+
+    override fun enable() {
+        registerEvents(plugin)
+    }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun onInventoryClick(event: InventoryClickEvent) {
-        if (!config.getBoolean("bannerHead.enabled", true)) {
-            return
-        }
 
         val player = event.whoClicked as? Player ?: return
         val clickedInventory = event.clickedInventory ?: return

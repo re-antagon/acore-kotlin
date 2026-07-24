@@ -2,6 +2,7 @@ package org.antagon.acore.listener
 
 import org.antagon.acore.core.ConfigManager
 import org.antagon.acore.fairplay.XaeroFairPlayManager
+import org.antagon.acore.module.AcoreModule
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -13,8 +14,18 @@ import org.bukkit.plugin.java.JavaPlugin
 class XaeroFairPlayListener(
     private val plugin: JavaPlugin,
     private val manager: XaeroFairPlayManager,
-    private val configManager: ConfigManager
-) : Listener {
+    private val configManager: ConfigManager = ConfigManager.getInstance()
+) : AcoreModule, Listener {
+
+    override val name: String = "Xaero's Minimap Fair-Play"
+
+    override fun shouldEnable(): Boolean {
+        return configManager.getBoolean("xaeroFairPlay.enabled", true)
+    }
+
+    override fun enable() {
+        registerEvents(plugin)
+    }
 
     private val bypassPermission = "acore.fairplay.bypass"
     private val delayTicks = 10L

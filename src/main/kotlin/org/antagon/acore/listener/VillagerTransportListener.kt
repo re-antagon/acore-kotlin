@@ -1,7 +1,8 @@
 package org.antagon.acore.listener
 
 import org.antagon.acore.Acore
-import org.antagon.acore.api.IConfig
+import org.antagon.acore.core.ConfigManager
+import org.antagon.acore.module.AcoreModule
 import org.bukkit.Material
 import org.bukkit.entity.*
 import org.bukkit.event.EventHandler
@@ -12,7 +13,21 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.scheduler.BukkitRunnable
 import java.util.logging.Logger
 
-class VillagerTransportListener(private val plugin: Acore, private val config: IConfig) : Listener {
+class VillagerTransportListener(
+    private val plugin: Acore,
+    private val configManager: ConfigManager = ConfigManager.getInstance()
+) : AcoreModule, Listener {
+
+    override val name: String = "Villager Transportation"
+
+    override fun shouldEnable(): Boolean {
+        return configManager.getBoolean("villagerTransport.enabled", true)
+    }
+
+    override fun enable() {
+        registerEvents(plugin)
+    }
+
     private val logger: Logger = plugin.logger
     private val villagerDetectionRange: Int
     private val allowCamelTransport: Boolean
@@ -20,10 +35,10 @@ class VillagerTransportListener(private val plugin: Acore, private val config: I
     private val teleportOnDismount: Boolean
 
     init {
-        villagerDetectionRange = config.getInt("villagerTransport.detectionRange", 3)
-        allowCamelTransport = config.getBoolean("villagerTransport.camel.enabled", true)
-        allowLlamaTransport = config.getBoolean("villagerTransport.llama.enabled", true)
-        teleportOnDismount = config.getBoolean("villagerTransport.teleportOnDismount", true)
+        villagerDetectionRange = configManager.getInt("villagerTransport.detectionRange", 3)
+        allowCamelTransport = configManager.getBoolean("villagerTransport.camel.enabled", true)
+        allowLlamaTransport = configManager.getBoolean("villagerTransport.llama.enabled", true)
+        teleportOnDismount = configManager.getBoolean("villagerTransport.teleportOnDismount", true)
 
         if (allowLlamaTransport) {
             startLlamaDetectionTask()

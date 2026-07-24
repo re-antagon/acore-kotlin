@@ -1,6 +1,7 @@
 package org.antagon.acore.listener
 
 import org.antagon.acore.core.ConfigManager
+import org.antagon.acore.module.AcoreModule
 import org.antagon.acore.util.MaterialValidator
 import org.bukkit.Material
 import org.bukkit.block.Block
@@ -13,12 +14,26 @@ import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.vehicle.VehicleExitEvent
 import org.bukkit.event.vehicle.VehicleMoveEvent
+import org.bukkit.plugin.Plugin
 import java.util.*
 import java.util.logging.Logger
 
-class MinecartSpeedListener : Listener {
+class MinecartSpeedListener(
+    private val plugin: Plugin,
+    private val configManager: ConfigManager = ConfigManager.getInstance()
+) : AcoreModule, Listener {
+
+    override val name: String = "Minecart Speed"
+
+    override fun shouldEnable(): Boolean {
+        return configManager.getBoolean("minecartSpeed.enabled", true)
+    }
+
+    override fun enable() {
+        registerEvents(plugin)
+    }
+
     private val logger = Logger.getLogger(MinecartSpeedListener::class.java.name)
-    private val minecartSpeedEnabled: Boolean
     private val smoothFactor: Double
     private val minecartTypes: List<String>
     private val blockTypes: ConfigurationSection?
@@ -32,13 +47,10 @@ class MinecartSpeedListener : Listener {
     )
 
     init {
-        val config = ConfigManager.getInstance()
-
-        minecartSpeedEnabled = config.getBoolean("minecartSpeed.enabled", true)
-        blockTypes = config.getSection("minecartSpeed.block-types")
-        railTypes = config.getSection("minecartSpeed.rail-types")
-        smoothFactor = config.getDouble("minecartSpeed.smooth-factor", 5.0)
-        minecartTypes = config.getStringList("minecartSpeed.minecart-types")
+        blockTypes = configManager.getSection("minecartSpeed.block-types")
+        railTypes = configManager.getSection("minecartSpeed.rail-types")
+        smoothFactor = configManager.getDouble("minecartSpeed.smooth-factor", 5.0)
+        minecartTypes = configManager.getStringList("minecartSpeed.minecart-types")
 
         loadBlockTypes()
         loadRailTypes()
@@ -92,7 +104,7 @@ class MinecartSpeedListener : Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     fun onVehicleMove(event: VehicleMoveEvent) {
-        if (!minecartSpeedEnabled || event.vehicle !is Minecart) return
+        if (event.vehicle !is Minecart) return
         val minecart = event.vehicle as Minecart
         if (!validMinecarts.contains(minecart.type)) return
 

@@ -1,6 +1,7 @@
 package org.antagon.acore.listener
 
 import org.antagon.acore.core.ConfigManager
+import org.antagon.acore.module.AcoreModule
 import org.bukkit.Material
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.ItemFrame
@@ -9,8 +10,22 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.inventory.ItemStack
+import org.bukkit.plugin.Plugin
 
-class ItemFrameListener(private val config: ConfigManager) : Listener {
+class ItemFrameListener(
+    private val plugin: Plugin,
+    private val config: ConfigManager = ConfigManager.getInstance()
+) : AcoreModule, Listener {
+
+    override val name: String = "Invisible Item Frames"
+
+    override fun shouldEnable(): Boolean {
+        return config.getBoolean("invisibleItemFrames.enabled", true)
+    }
+
+    override fun enable() {
+        registerEvents(plugin)
+    }
 
     @EventHandler(ignoreCancelled = true)
     fun onPlayerInteractEntity(event: PlayerInteractEntityEvent) {

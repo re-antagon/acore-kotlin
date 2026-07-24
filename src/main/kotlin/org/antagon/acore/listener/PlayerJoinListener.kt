@@ -1,33 +1,43 @@
 package org.antagon.acore.listener
 
 import org.antagon.acore.core.ConfigManager
+import org.antagon.acore.module.AcoreModule
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.plugin.Plugin
 import io.papermc.paper.datacomponent.DataComponentTypes
 import io.papermc.paper.datacomponent.item.CustomModelData
 import java.util.logging.Logger
 
-class PlayerJoinListener : Listener {
+class PlayerJoinListener(
+    private val plugin: Plugin,
+    private val configManager: ConfigManager = ConfigManager.getInstance()
+) : AcoreModule, Listener {
+
+    override val name: String = "First Join Item"
+
+    override fun shouldEnable(): Boolean {
+        return configManager.getBoolean("firstJoinItem.enabled", true)
+    }
+
+    override fun enable() {
+        registerEvents(plugin)
+    }
+
     private val logger = Logger.getLogger(PlayerJoinListener::class.java.name)
-    private val firstJoinItemEnabled: Boolean
     private val mythicItemName: String
     private val customModelData: Int
 
     init {
-        val config = ConfigManager.getInstance()
-
-        firstJoinItemEnabled = config.getBoolean("firstJoinItem.enabled", true)
-        mythicItemName = config.getString("firstJoinItem.mythicItemName", "menu_book")
-        customModelData = config.getInt("firstJoinItem.customModelData", 1039)
+        mythicItemName = configManager.getString("firstJoinItem.mythicItemName", "menu_book")
+        customModelData = configManager.getInt("firstJoinItem.customModelData", 1039)
     }
 
     @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent) {
         val player = event.player
-
-        if (!firstJoinItemEnabled) return
 
         // Check if player has played before using Bukkit/Paper API
         if (player.hasPlayedBefore()) {

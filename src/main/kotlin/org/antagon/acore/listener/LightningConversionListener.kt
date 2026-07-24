@@ -1,13 +1,28 @@
 package org.antagon.acore.listener
 
 import org.antagon.acore.core.ConfigManager
+import org.antagon.acore.module.AcoreModule
 import org.bukkit.Material
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.weather.LightningStrikeEvent
+import org.bukkit.plugin.Plugin
 
-class LightningConversionListener(private val config: ConfigManager) : Listener {
+class LightningConversionListener(
+    private val plugin: Plugin,
+    private val config: ConfigManager = ConfigManager.getInstance()
+) : AcoreModule, Listener {
+
+    override val name: String = "Lightning Conversion"
+
+    override fun shouldEnable(): Boolean {
+        return config.getBoolean("lightningConversion.enabled", true)
+    }
+
+    override fun enable() {
+        registerEvents(plugin)
+    }
     private val conversions = mutableMapOf<Material, Material>()
 
     init {

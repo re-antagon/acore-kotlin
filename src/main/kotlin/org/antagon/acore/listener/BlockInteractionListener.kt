@@ -1,5 +1,6 @@
 package org.antagon.acore.listener
 
+import org.antagon.acore.module.AcoreModule
 import org.antagon.acore.util.BlockInteractionTracker
 import org.antagon.acore.util.BlockInteractionTracker.InteractionType
 import org.bukkit.Location
@@ -9,9 +10,20 @@ import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.player.PlayerInteractEvent
+import org.bukkit.plugin.Plugin
 
 // Listens for player interactions with blocks to track them for indicator potion feature
-class BlockInteractionListener : Listener {
+class BlockInteractionListener(
+    private val plugin: Plugin
+) : AcoreModule, Listener {
+
+    override val name: String = "Block Interaction Tracker"
+
+    override fun shouldEnable(): Boolean = true
+
+    override fun enable() {
+        registerEvents(plugin)
+    }
     private val tracker: BlockInteractionTracker
 
     init {
