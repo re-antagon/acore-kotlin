@@ -21,6 +21,17 @@ object DependencyHandler {
     }
 
     /**
+     * Checks if a plugin dependency is present/installed on the server (useful during onLoad before plugins are enabled).
+     */
+    fun isPluginInstalled(pluginName: String): Boolean {
+        return try {
+            Bukkit.getPluginManager().getPlugin(pluginName) != null
+        } catch (e: Throwable) {
+            false
+        }
+    }
+
+    /**
      * Safely retrieves the LuckPerms API instance if available.
      * Returns null if LuckPerms is not installed, disabled, or uninitialized.
      */

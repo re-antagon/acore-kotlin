@@ -33,7 +33,7 @@ dependencies {
     compileOnly("net.kyori:adventure-api:4.26.1")                    // Adventure API
     compileOnly("net.kyori:adventure-text-minimessage:4.26.1")       // Adventure Text MiniMessage
     implementation(kotlin("stdlib"))
-    compileOnly("org.reflections:reflections:0.10.2")
+    implementation("org.reflections:reflections:0.10.2")
 }
 
 tasks.processResources {

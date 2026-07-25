@@ -38,7 +38,7 @@ class XaeroFairPlayManager(private val plugin: JavaPlugin) {
     private var isLoaded = false
 
     private fun isPacketEventsAvailable(): Boolean {
-        return DependencyHandler.isPluginEnabled("PacketEvents")
+        return DependencyHandler.isPluginInstalled("PacketEvents")
     }
 
     fun onLoad() {
