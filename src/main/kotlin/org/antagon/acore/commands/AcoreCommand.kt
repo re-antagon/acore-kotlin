@@ -23,11 +23,17 @@ class AcoreCommand(
     private val referralManager: ReferralManager
 ) {
 
+    companion object {
+        private val cachedBlockMaterials: List<String> by lazy {
+            org.bukkit.Material.entries.filter { it.isBlock && !it.isAir }.map { it.name.lowercase() }
+        }
+    }
+
     fun register() {
         plugin.lifecycleManager.registerEventHandler(LifecycleEvents.COMMANDS) { event ->
             val commands = event.registrar()
 
-            // 1. Register /acore reload
+            // 1. Register /acore reload and /acore visualize
             commands.register(
                 Commands.literal("acore")
                     .then(
@@ -41,8 +47,93 @@ class AcoreCommand(
                                 } catch (e: Exception) {
                                     sender.sendMessage(Component.text("§cFailed to reload Acore: ${e.message}"))
                                 }
-                                1 // Command.SINGLE_SUCCESS
+                                1
                             }
+                    )
+                    .then(
+                        Commands.literal("visualize")
+                            .requires { source -> source.sender.hasPermission("acore.visualize") }
+                            .executes { ctx ->
+                                val sender = ctx.source.sender
+                                if (sender !is Player) {
+                                    sender.sendMessage("§cЭта команда доступна только игрокам!")
+                                    return@executes 1
+                                }
+                                sender.sendMessage("§eИспользование: /acore visualize <CoreProtect lookup аргументы>")
+                                sender.sendMessage("§7Пример: /acore visualize action:-block include:ancient_debris time:1h duration:30s")
+                                sender.sendMessage("§7Для очистки: /acore visualize clear")
+                                1
+                            }
+                            .then(
+                                Commands.argument("args", com.mojang.brigadier.arguments.StringArgumentType.greedyString())
+                                    .suggests { ctx, builder ->
+                                        val fullInput = builder.remaining
+                                        val lastSpace = fullInput.lastIndexOf(' ')
+                                        val prefix = if (lastSpace == -1) "" else fullInput.substring(0, lastSpace + 1)
+                                        val token = if (lastSpace == -1) fullInput.lowercase() else fullInput.substring(lastSpace + 1).lowercase()
+
+                                        when {
+                                            token.startsWith("a:") || token.startsWith("action:") -> {
+                                                val valPart = token.substringAfter(":")
+                                                listOf("action:-block", "action:+block", "action:block", "action:click", "action:container", "action:kill", "action:item")
+                                                    .filter { it.substringAfter(":").startsWith(valPart) }
+                                                    .forEach { builder.suggest(prefix + it) }
+                                            }
+                                            token.startsWith("i:") || token.startsWith("include:") -> {
+                                                val valPart = token.substringAfter(":")
+                                                cachedBlockMaterials.filter { it.startsWith(valPart) }.take(15)
+                                                    .forEach { builder.suggest(prefix + "include:" + it) }
+                                            }
+                                            token.startsWith("e:") || token.startsWith("exclude:") -> {
+                                                val valPart = token.substringAfter(":")
+                                                cachedBlockMaterials.filter { it.startsWith(valPart) }.take(15)
+                                                    .forEach { builder.suggest(prefix + "exclude:" + it) }
+                                            }
+                                            token.startsWith("u:") || token.startsWith("user:") -> {
+                                                val valPart = token.substringAfter(":")
+                                                org.bukkit.Bukkit.getOnlinePlayers().map { it.name }
+                                                    .filter { it.lowercase().startsWith(valPart) }
+                                                    .forEach { builder.suggest(prefix + "user:" + it) }
+                                            }
+                                            token.startsWith("t:") || token.startsWith("time:") -> {
+                                                listOf("time:10m", "time:1h", "time:12h", "time:1d")
+                                                    .forEach { builder.suggest(prefix + it) }
+                                            }
+                                            token.startsWith("d:") || token.startsWith("duration:") -> {
+                                                listOf("duration:15s", "duration:30s", "duration:1m", "duration:5m")
+                                                    .forEach { builder.suggest(prefix + it) }
+                                            }
+                                            token.startsWith("r:") || token.startsWith("radius:") -> {
+                                                listOf("radius:5", "radius:10", "radius:20", "radius:#world", "radius:#global")
+                                                    .forEach { builder.suggest(prefix + it) }
+                                            }
+                                            else -> {
+                                                listOf("action:", "include:", "exclude:", "user:", "time:", "duration:", "radius:", "clear")
+                                                    .filter { it.startsWith(token) }
+                                                    .forEach { builder.suggest(prefix + it) }
+                                            }
+                                        }
+                                        builder.buildFuture()
+                                    }
+                                    .executes { ctx ->
+                                        val sender = ctx.source.sender
+                                        if (sender !is Player) {
+                                            sender.sendMessage("§cЭта команда доступна только игрокам!")
+                                            return@executes 1
+                                        }
+
+                                        val argsStr = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "args")
+                                        if (argsStr.equals("clear", ignoreCase = true)) {
+                                            org.antagon.acore.listener.CoreProtectVisualizerListener.SessionManager.stopSession(sender)
+                                            sender.sendMessage("§aФантомная визуализация очищена.")
+                                            return@executes 1
+                                        }
+
+                                        val query = org.antagon.acore.listener.CoreProtectVisualizerListener.Parser.parseArgs(argsStr, configManager)
+                                        org.antagon.acore.listener.CoreProtectVisualizerListener.SessionManager.startSession(sender, query, configManager)
+                                        1
+                                    }
+                            )
                     )
                     .build(),
                 "Acore main command",

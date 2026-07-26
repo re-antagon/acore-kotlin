@@ -259,5 +259,26 @@ soulSoilTill:
   enabled: true
   requireHoe: true
 
+# CoreProtect 3D Phantom Visualizer (/acore visualize)
+visualize:
+  enabled: true
+  # Default duration in seconds before phantom objects despawn
+  default-duration: 30
+  # Maximum number of phantom blocks rendered per command to prevent client FPS drop
+  max-blocks-limit: 500
+  # Display mode: "exact_object" (renders actual item/block model) or "colored_concrete"
+  display-mode: "exact_object"
+  # Show floating text holograms above phantom objects with player and time info
+  show-holograms: true
+  # Colors for action glowing outlines
+  colors:
+    removed: "RED"
+    placed: "GREEN"
+    click: "YELLOW"
+    container: "GOLD"
+    kill: "DARK_PURPLE"
+    item: "AQUA"
+
+
 
 

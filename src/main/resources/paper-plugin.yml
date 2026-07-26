@@ -20,6 +20,9 @@ dependencies:
     PacketEvents:
       load: BEFORE
       required: false
+    CoreProtect:
+      load: BEFORE
+      required: false
 permissions:
   permission.admin:
     description: Permission for admin commands
