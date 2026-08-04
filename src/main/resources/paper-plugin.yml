@@ -23,6 +23,12 @@ dependencies:
     CoreProtect:
       load: BEFORE
       required: false
+    CoinsEngine:
+      load: BEFORE
+      required: false
+    Vault:
+      load: BEFORE
+      required: false
 permissions:
   permission.admin:
     description: Permission for admin commands

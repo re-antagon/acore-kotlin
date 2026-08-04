@@ -279,6 +279,26 @@ visualize:
     kill: "DARK_PURPLE"
     item: "AQUA"
 
+# Coin transfer commission feature (using CoinsEngine and NightCore)
+coinTransferFee:
+  enabled: true
+  # Currency ID in CoinsEngine
+  currency: "antacoin"
+  # Commission fee percentage (e.g. 5.0 for 5%)
+  fee-percentage: 25.0
+  # Fixed fee amount added to percentage fee
+  fixed-fee: 0.0
+  # Minimum fee amount
+  min-fee: 1.0
+  # Maximum fee amount (0 for unlimited)
+  max-fee: 0.0
+  # Commands to intercept for transfers
+  commands:
+    - "pay"
+    - "send"
+    - "antacoin pay"
+    - "antacoin send"
+    - "coinsengine pay"
+    - "coinsengine send"
 
 
-
