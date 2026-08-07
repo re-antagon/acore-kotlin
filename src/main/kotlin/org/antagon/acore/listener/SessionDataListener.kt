@@ -15,9 +15,10 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.bukkit.event.player.PlayerGameModeChangeEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.Plugin
+import java.io.BufferedWriter
 import java.io.File
-import java.io.FileWriter
-import java.io.PrintWriter
+import java.io.FileOutputStream
+import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -40,28 +41,53 @@ class SessionDataListener(
 
     override fun disable() {
         super.disable()
+        executor.submit {
+            try {
+                writer?.flush()
+                writer?.close()
+                writer = null
+            } catch (_: Exception) {
+            }
+        }
         executor.shutdown()
     }
 
     private val timeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-    private val executor = Executors.newSingleThreadExecutor()
+    private val executor = Executors.newSingleThreadExecutor { r ->
+        Thread(r, "acore-session-writer")
+    }
     private val cacheFile: File by lazy {
         val folder = plugin.dataFolder
-        if (!folder.exists()) {
-            folder.mkdirs()
-        }
+        folder.mkdirs()
         File(folder, "session_cache")
+    }
+
+    private var writer: BufferedWriter? = null
+
+    private fun getOrCreateWriter(): BufferedWriter {
+        var w = writer
+        if (w == null) {
+            w = BufferedWriter(OutputStreamWriter(FileOutputStream(cacheFile, true), StandardCharsets.UTF_8))
+            writer = w
+        }
+        return w
     }
 
     private val trackedPrefixes = listOf(
         "/give",
         "/item",
         "/i",
+        "/egive",
+        "/eitem",
+        "/ei",
         "/mi give",
         "/mythicmobs give",
         "/eb give",
         "/essentials:give",
+        "/essentials:item",
+        "/essentials:i",
         "/minecraft:give",
+        "/minecraft:item",
         "/eq give",
         "/grant"
     )
@@ -146,10 +172,16 @@ class SessionDataListener(
         // Guarantees strictly sequential FIFO writing on a single dedicated background thread
         executor.submit {
             try {
-                PrintWriter(FileWriter(cacheFile, true)).use { writer ->
-                    writer.println(encoded)
-                }
+                val w = getOrCreateWriter()
+                w.write(encoded)
+                w.newLine()
+                w.flush()
             } catch (_: Exception) {
+                try {
+                    writer?.close()
+                } catch (_: Exception) {
+                }
+                writer = null
             }
         }
     }
