@@ -55,10 +55,12 @@ object DependencyHandler {
         featureName: String,
         fallback: T? = null,
         logger: Logger? = null,
+        checkEnabled: Boolean = true,
         block: () -> T
     ): T? {
         val log = logger ?: defaultLogger
-        if (!isPluginEnabled(dependencyName)) {
+        val isAvailable = if (checkEnabled) isPluginEnabled(dependencyName) else isPluginInstalled(dependencyName)
+        if (!isAvailable) {
             log.warning("Dependency '$dependencyName' is missing or disabled. Feature '$featureName' will be skipped.")
             return fallback
         }

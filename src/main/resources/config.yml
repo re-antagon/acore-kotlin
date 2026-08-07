@@ -264,6 +264,8 @@ visualize:
   enabled: true
   # Default duration in seconds before phantom objects despawn
   default-duration: 30
+  # Default search radius in blocks (0 = global/unrestricted search, matching /co lookup)
+  default-radius: 0
   # Maximum number of phantom blocks rendered per command to prevent client FPS drop
   max-blocks-limit: 500
   # Display mode: "exact_object" (renders actual item/block model) or "colored_concrete"

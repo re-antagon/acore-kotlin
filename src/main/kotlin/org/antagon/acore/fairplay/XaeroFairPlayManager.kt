@@ -47,7 +47,8 @@ class XaeroFairPlayManager(private val plugin: JavaPlugin) {
                 dependencyName = "PacketEvents",
                 featureName = "PacketEvents API Load",
                 fallback = false,
-                logger = logger
+                logger = logger,
+                checkEnabled = false
             ) {
                 PacketEvents.setAPI(SpigotPacketEventsBuilder.build(plugin))
                 PacketEvents.getAPI().load()
