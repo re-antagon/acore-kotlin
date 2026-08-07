@@ -17,6 +17,7 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.bukkit.event.player.PlayerGameModeChangeEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.Plugin
+import java.io.BufferedWriter
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
@@ -51,6 +52,14 @@ class SessionDataListener(
 
     override fun disable() {
         super.disable()
+        executor.submit {
+            try {
+                writer?.flush()
+                writer?.close()
+                writer = null
+            } catch (_: Exception) {
+            }
+        }
         executor.shutdown()
     }
 
@@ -72,11 +81,17 @@ class SessionDataListener(
         "/give",
         "/item",
         "/i",
+        "/egive",
+        "/eitem",
+        "/ei",
         "/mi give",
         "/mythicmobs give",
         "/eb give",
         "/essentials:give",
+        "/essentials:item",
+        "/essentials:i",
         "/minecraft:give",
+        "/minecraft:item",
         "/eq give",
         "/grant"
     )
@@ -258,6 +273,11 @@ class SessionDataListener(
                     out.flush()
                 }
             } catch (_: Exception) {
+                try {
+                    writer?.close()
+                } catch (_: Exception) {
+                }
+                writer = null
             }
         }
     }
