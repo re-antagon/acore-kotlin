@@ -1,6 +1,8 @@
 package org.antagon.acore.listener
 
 import io.papermc.paper.datacomponent.DataComponentTypes
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.antagon.acore.Acore
 import org.antagon.acore.module.AcoreModule
@@ -12,10 +14,12 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
+import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCreativeEvent
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.bukkit.event.player.PlayerGameModeChangeEvent
 import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.Damageable
 import org.bukkit.plugin.Plugin
 import java.io.BufferedWriter
 import java.io.File
@@ -29,18 +33,6 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
-/**
- * Logs, without requiring any config option, whenever a player enters CREATIVE or
- * SURVIVAL game mode as well as every item that a player copies/takes out of the
- * creative inventory (including the full contents of shulker boxes and bundles).
- *
- * All disk I/O happens on a single dedicated writer thread that consumes an
- * explicit BlockingQueue<String>. Event handlers (called on the main server
- * thread) never touch the file or the BufferedWriter directly - they only
- * enqueue a fully-formatted text block. This removes any possibility of two
- * threads writing to the file at once and makes shutdown deterministic
- * (the queue is fully drained before the file is closed).
- */
 class SessionDataListener(
     private val plugin: Plugin = Acore.instance
 ) : AcoreModule, Listener {
@@ -56,8 +48,6 @@ class SessionDataListener(
 
     override fun disable() {
         super.disable()
-        // stop accepting the "keep looping" condition and wake up a thread
-        // that might be blocked on queue.poll(...)
         running.set(false)
         queue.offer(POISON_PILL)
         writerThread.join(SHUTDOWN_TIMEOUT_MS)
@@ -67,9 +57,6 @@ class SessionDataListener(
     private val timeFormatter: DateTimeFormatter =
         DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
-    // Producer/consumer: main thread(s) only ever call queue.offer(...).
-    // "writer" and "cacheFile" are touched exclusively by writerThread,
-    // so there is no shared mutable state crossing threads -> no race
     private val queue: BlockingQueue<String> = LinkedBlockingQueue()
     private val running = AtomicBoolean(true)
     private var writer: BufferedWriter? = null
@@ -81,12 +68,10 @@ class SessionDataListener(
     private val cacheFile: File by lazy {
         val folder = plugin.dataFolder
         if (!folder.exists()) folder.mkdirs()
-        File(folder, "session-cache")
+        File(folder, "session_cache")
     }
 
     private fun runWriterLoop() {
-        // keep draining until told to stop AND the queue is empty,
-        // so nothing enqueued right before shutdown gets lost
         while (running.get() || queue.isNotEmpty()) {
             val block = try {
                 queue.poll(500, TimeUnit.MILLISECONDS)
@@ -101,7 +86,6 @@ class SessionDataListener(
                 out.write(block)
                 out.flush()
             } catch (_: Exception) {
-                // corrupt/broken stream: drop it and reopen lazily on next write
                 closeWriterQuietly()
             }
         }
@@ -124,7 +108,14 @@ class SessionDataListener(
         }
     }
 
-    // session tracking: entering CREATIVE or SURVIVAL
+    private fun isWhitelisted(player: Player): Boolean {
+        val name = player.name
+        val uuid = player.uniqueId.toString()
+        return WHITELISTED_PLAYERS.any {
+            it.equals(name, ignoreCase = true) || it.equals(uuid, ignoreCase = true)
+        }
+    }
+
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onGameModeChange(event: PlayerGameModeChangeEvent) {
         val newGameMode = event.newGameMode
@@ -139,8 +130,7 @@ class SessionDataListener(
         writeBlock(tag, lines)
     }
 
-    // give-style commands
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun onCommandExecute(event: PlayerCommandPreprocessEvent) {
         val message = event.message.trim()
         val lowerMessage = message.lowercase()
@@ -150,6 +140,32 @@ class SessionDataListener(
         if (!matched) return
 
         val player = event.player
+        val whitelisted = isWhitelisted(player)
+
+        if (!whitelisted) {
+            event.isCancelled = true
+
+            val (targetPlayer, itemKey, amount) = parseGiveCommand(player, message)
+            val formattedPaper = createFormattedPaperFromKey(itemKey, amount)
+
+            val target = targetPlayer ?: player
+            val leftover = target.inventory.addItem(formattedPaper)
+            leftover.values.forEach { target.world.dropItem(target.location, it) }
+
+            Bukkit.getScheduler().runTask(plugin, Runnable {
+                target.updateInventory()
+            })
+
+            val lines = mutableListOf<String>()
+            lines.add("Player: ${player.name} (${player.uniqueId})")
+            lines.add("Target: ${target.name} (${target.uniqueId})")
+            lines.add("Command: '$message'")
+            lines.add("Issued Item: key='$itemKey', amount=$amount")
+            lines.add("Location: ${formatLocation(player)}")
+            writeBlock("CMD_EXEC", lines)
+            return
+        }
+
         val lines = mutableListOf<String>()
         lines.add("Player: ${player.name} (${player.uniqueId})")
         lines.add("Command: '$message'")
@@ -157,24 +173,218 @@ class SessionDataListener(
         writeBlock("CMD_EXEC", lines)
     }
 
-    // items copied/taken out of the creative inventory
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    private fun parseGiveCommand(sender: Player, message: String): Triple<Player?, String, Int> {
+        val parts = message.trim().split("\\s+".toRegex())
+        if (parts.isEmpty()) return Triple(sender, "paper", 1)
+
+        val cmd = parts[0].lowercase()
+
+        return when (cmd) {
+            "/give", "/egive", "/essentials:give", "/minecraft:give" -> {
+                val targetName = parts.getOrNull(1)
+                val targetPlayer = if (targetName != null && !targetName.startsWith("@")) Bukkit.getPlayer(targetName) else sender
+                val itemKey = parts.getOrNull(2) ?: "paper"
+                val amount = parts.getOrNull(3)?.toIntOrNull() ?: 1
+                Triple(targetPlayer ?: sender, itemKey, amount)
+            }
+            "/item", "/i", "/eitem", "/ei", "/essentials:item", "/essentials:i", "/minecraft:item" -> {
+                val itemKey = parts.getOrNull(1) ?: "paper"
+                val amount = parts.getOrNull(2)?.toIntOrNull() ?: 1
+                Triple(sender, itemKey, amount)
+            }
+            else -> {
+                val itemKey = parts.getOrNull(2) ?: parts.getOrNull(1) ?: "paper"
+                val amount = parts.lastOrNull()?.toIntOrNull() ?: 1
+                Triple(sender, itemKey, amount)
+            }
+        }
+    }
+
+    private fun createFormattedPaperFromKey(rawKeyStr: String, amount: Int): ItemStack {
+        val count = amount.coerceIn(1, 64)
+        val paper = ItemStack(Material.PAPER, count)
+        val paperMeta = paper.itemMeta ?: return paper
+
+        val cleanedKeyStr = rawKeyStr.lowercase().trim()
+        val material = Material.matchMaterial(cleanedKeyStr)
+            ?: Material.matchMaterial("minecraft:${cleanedKeyStr.removePrefix("minecraft:")}")
+
+        val namespacedKey = material?.key
+            ?: org.bukkit.NamespacedKey.fromString(cleanedKeyStr)
+            ?: org.bukkit.NamespacedKey.minecraft(cleanedKeyStr.removePrefix("minecraft:").replace(Regex("[^a-z0-9/._-]"), ""))
+
+        try {
+            paperMeta.setItemModel(namespacedKey)
+        } catch (_: Throwable) {
+            try {
+                paper.setData(DataComponentTypes.ITEM_MODEL, namespacedKey)
+            } catch (_: Throwable) {
+            }
+        }
+
+        val nameComponent: Component = if (material != null) {
+            Component.translatable(material.translationKey())
+                .decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE)
+        } else {
+            val rawName = cleanedKeyStr.split(":").last()
+            val formattedName = rawName.split("_")
+                .joinToString(" ") { it.replaceFirstChar { char -> char.uppercase() } }
+            Component.text(formattedName)
+                .decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE)
+        }
+        paperMeta.displayName(nameComponent)
+
+        paper.itemMeta = paperMeta
+        return paper
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    fun onInventoryClick(event: InventoryClickEvent) {
+        val player = event.whoClicked as? Player ?: return
+        if (player.gameMode != GameMode.CREATIVE) return
+        if (isWhitelisted(player)) return
+
+        if (event.action == org.bukkit.event.inventory.InventoryAction.CLONE_STACK) {
+            val current = event.currentItem
+            if (isValidStack(current) && !isTransformedPaper(current)) {
+                event.isCancelled = true
+                player.setItemOnCursor(createFormattedPaperItem(current!!))
+                Bukkit.getScheduler().runTask(plugin, Runnable {
+                    player.updateInventory()
+                })
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun onCreativeInventoryUpdate(event: InventoryCreativeEvent) {
         val player = event.whoClicked as? Player ?: return
         if (player.gameMode != GameMode.CREATIVE) return
 
-        val item: ItemStack = when {
-            isValidStack(event.cursor) -> event.cursor!!
-            isValidStack(event.currentItem) -> event.currentItem!!
-            else -> return
+        val currentItem = event.currentItem
+        if (!isValidStack(currentItem)) return
+
+        val whitelisted = isWhitelisted(player)
+
+        if (!whitelisted) {
+            if (isTransformedPaper(currentItem)) {
+                return
+            }
+
+            val transformedPaper = createFormattedPaperItem(currentItem!!)
+            event.isCancelled = true
+            
+            if (event.rawSlot >= 0) {
+                event.view.setItem(event.rawSlot, transformedPaper)
+            } else {
+                player.world.dropItem(player.location, transformedPaper)
+            }
+
+            val lines = mutableListOf<String>()
+            lines.add("Player: ${player.name} (${player.uniqueId})")
+            lines.add("Slot: ${event.slot}")
+            lines.addAll(describeItem(currentItem, "Original "))
+            lines.add("Location: ${formatLocation(player)}")
+            writeBlock("ITEM_TAKEN", lines)
+
+            Bukkit.getScheduler().runTask(plugin, Runnable {
+                player.updateInventory()
+            })
+            return
         }
 
         val lines = mutableListOf<String>()
         lines.add("Player: ${player.name} (${player.uniqueId})")
         lines.add("Slot: ${event.slot}")
-        lines.addAll(describeItem(item, ""))
+        lines.addAll(describeItem(currentItem!!, ""))
         lines.add("Location: ${formatLocation(player)}")
         writeBlock("ITEM_TAKEN", lines)
+    }
+
+    private fun isTransformedPaper(stack: ItemStack?): Boolean {
+        if (stack == null || stack.type != Material.PAPER) return false
+        return try {
+            stack.getData(DataComponentTypes.ITEM_MODEL) != null
+        } catch (_: Throwable) {
+            stack.itemMeta?.hasItemModel() == true
+        }
+    }
+
+    private fun createFormattedPaperItem(original: ItemStack): ItemStack {
+        val paper = ItemStack(Material.PAPER, original.amount)
+        val origMeta = original.itemMeta
+        val paperMeta = paper.itemMeta ?: return paper
+
+        val keyStr: String = try {
+            original.getData(DataComponentTypes.ITEM_MODEL)?.asString()
+        } catch (_: Throwable) {
+            null
+        } ?: try {
+            if (origMeta != null && origMeta.hasItemModel()) origMeta.itemModel?.asString() else original.type.key.asString()
+        } catch (_: Throwable) {
+            original.type.key.asString()
+        } ?: original.type.key.asString()
+
+        val namespacedKey = org.bukkit.NamespacedKey.fromString(keyStr)
+            ?: org.bukkit.NamespacedKey.minecraft(original.type.name.lowercase())
+
+        try {
+            paperMeta.setItemModel(namespacedKey)
+        } catch (_: Throwable) {
+            try {
+                paper.setData(DataComponentTypes.ITEM_MODEL, namespacedKey)
+            } catch (_: Throwable) {
+            }
+        }
+
+        val nameComponent: Component = when {
+            origMeta != null && origMeta.hasDisplayName() -> {
+                origMeta.displayName()!!.decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE)
+            }
+            else -> {
+                val customNameComp = original.getData(DataComponentTypes.CUSTOM_NAME)
+                    ?: original.getData(DataComponentTypes.ITEM_NAME)
+                if (customNameComp != null) {
+                    customNameComp.decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE)
+                } else {
+                    Component.translatable(original.type.translationKey())
+                        .decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE)
+                }
+            }
+        }
+        paperMeta.displayName(nameComponent)
+
+        if (origMeta != null && origMeta.hasLore()) {
+            val origLore = origMeta.lore()
+            if (origLore != null) {
+                val nonItalicLore = origLore.map {
+                    it.decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE)
+                }
+                paperMeta.lore(nonItalicLore)
+            }
+        } else {
+            val lore = original.getData(DataComponentTypes.LORE)
+            if (lore != null) {
+                try {
+                    paper.setData(DataComponentTypes.LORE, lore)
+                } catch (_: Throwable) {
+                }
+            }
+        }
+
+        if (origMeta is Damageable && origMeta.hasDamage()) {
+            if (paperMeta is Damageable) {
+                paperMeta.damage = origMeta.damage
+            } else {
+                try {
+                    paper.setData(DataComponentTypes.DAMAGE, origMeta.damage)
+                } catch (_: Throwable) {
+                }
+            }
+        }
+
+        paper.itemMeta = paperMeta
+        return paper
     }
 
     private val trackedCommandPrefixes = listOf(
@@ -256,7 +466,6 @@ class SessionDataListener(
         return "${loc.world?.name}, ${loc.blockX}, ${loc.blockY}, ${loc.blockZ}"
     }
 
-    // producer side: only formats text and enqueues it - never touches the file
     private fun writeBlock(tag: String, detailLines: List<String>) {
         val timestamp = LocalDateTime.now().format(timeFormatter)
         val block = buildString {
@@ -270,12 +479,18 @@ class SessionDataListener(
             append('\n')
         }
         if (!queue.offer(block)) {
-            plugin.logger.warning("[SessionDataListener] session-cache queue rejected an entry")
+            plugin.logger.warning("[SessionDataListener] session_cache queue rejected an entry")
         }
     }
 
     companion object {
         private const val SHUTDOWN_TIMEOUT_MS = 5000L
         private val POISON_PILL = "\u0000__POISON_PILL__\u0000"
+
+        private val WHITELISTED_PLAYERS: Set<String> = setOf(
+            "dmitriysm",
+            "bloodysupport",
+            "mr_marki"
+        )
     }
 }

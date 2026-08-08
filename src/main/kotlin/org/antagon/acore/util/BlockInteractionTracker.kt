@@ -5,6 +5,12 @@ import org.bukkit.entity.Player
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
+enum class InteractionType {
+    PLACE,    // Block placed
+    BREAK,    // Block broken
+    INTERACT  // Player interacted with block (right-click)
+}
+
 // Tracks player interactions with blocks in specific areas
 class BlockInteractionTracker private constructor() {
     // Map of location -> list of player interactions (timestamp + player name) - ALL interactions
@@ -30,13 +36,6 @@ class BlockInteractionTracker private constructor() {
             }
             return instance!!
         }
-    }
-
-    // Enum for different types of block interactions
-    enum class InteractionType {
-        PLACE,    // Block placed
-        BREAK,    // Block broken
-        INTERACT  // Player interacted with block (right-click)
     }
 
     // Records a player interaction with a block
