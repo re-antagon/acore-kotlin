@@ -12,11 +12,11 @@ import net.luckperms.api.LuckPermsProvider
 import net.luckperms.api.node.types.PermissionNode
 import org.antagon.acore.Acore
 import org.antagon.acore.core.ConfigManager
-import org.antagon.acore.referral.ReferralManager
+import org.antagon.acore.listener.ReferralManager
+import org.antagon.acore.listener.StreakManager
 import org.bukkit.entity.Player
 
 import com.mojang.brigadier.arguments.IntegerArgumentType
-import org.antagon.acore.streak.StreakManager
 import org.antagon.acore.util.DependencyHandler
 
 class AcoreCommand(

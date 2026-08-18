@@ -2,7 +2,7 @@ package org.antagon.acore.listener
 
 import org.antagon.acore.Acore
 import org.antagon.acore.core.ConfigManager
-import org.antagon.acore.module.AcoreModule
+import org.antagon.acore.core.module.AcoreModule
 import org.antagon.acore.util.BlockInteractionTracker
 import org.antagon.acore.util.EntityKillTracker
 import org.bukkit.entity.Player

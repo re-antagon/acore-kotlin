@@ -2,13 +2,12 @@ package org.antagon.acore
 
 import org.antagon.acore.commands.AcoreCommand
 import org.antagon.acore.core.ConfigManager
-import org.antagon.acore.database.DatabaseManager
-import org.antagon.acore.fairplay.XaeroFairPlayManager
-import org.antagon.acore.module.AcoreModule
-import org.antagon.acore.referral.ReferralManager
-import org.antagon.acore.referral.storage.ReferralDao
-import org.antagon.acore.streak.StreakManager
-import org.antagon.acore.streak.storage.StreakDao
+import org.antagon.acore.core.database.DatabaseManager
+import org.antagon.acore.core.module.AcoreModule
+import org.antagon.acore.listener.ReferralDao
+import org.antagon.acore.listener.ReferralManager
+import org.antagon.acore.listener.StreakDao
+import org.antagon.acore.listener.StreakManager
 import org.antagon.acore.util.BlockInteractionTracker
 import org.antagon.acore.util.DependencyHandler
 import org.antagon.acore.util.EntityKillTracker
@@ -26,18 +25,10 @@ class Acore : JavaPlugin() {
         private set
     lateinit var referralManager: ReferralManager
         private set
-    lateinit var xaeroFairPlayManager: XaeroFairPlayManager
-        private set
     lateinit var databaseManager: DatabaseManager
         private set
     lateinit var streakManager: StreakManager
         private set
-
-    override fun onLoad() {
-        instance = this
-        xaeroFairPlayManager = XaeroFairPlayManager(this)
-        xaeroFairPlayManager.onLoad()
-    }
 
     override fun onEnable() {
         instance = this
@@ -62,9 +53,6 @@ class Acore : JavaPlugin() {
         // Initialize StreakManager
         val streakDao = StreakDao(databaseManager)
         streakManager = StreakManager(this, streakDao, configManager)
-
-        // Initialize PacketEvents / XaeroFairPlayManager
-        xaeroFairPlayManager.init()
 
         // Initialize referral manager
         val referralDao = ReferralDao(databaseManager)
@@ -122,7 +110,6 @@ class Acore : JavaPlugin() {
         streakManager.shutdown()
         referralManager.shutdown()
         databaseManager.close()
-        xaeroFairPlayManager.terminate()
         logger.info("Acore plugin has been disabled")
     }
 }

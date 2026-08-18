@@ -2,9 +2,14 @@ package org.antagon.acore.util
 
 import net.luckperms.api.LuckPerms
 import net.luckperms.api.LuckPermsProvider
-import org.antagon.acore.exception.MissingDependencyException
 import org.bukkit.Bukkit
 import java.util.logging.Logger
+
+class MissingDependencyException(
+    val dependencyName: String,
+    val featureName: String,
+    message: String = "Required dependency '$dependencyName' is missing or uninitialized for feature '$featureName'."
+) : RuntimeException(message)
 
 object DependencyHandler {
     private val defaultLogger = Logger.getLogger(DependencyHandler::class.java.name)

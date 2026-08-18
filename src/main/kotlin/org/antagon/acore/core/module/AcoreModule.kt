@@ -1,4 +1,4 @@
-package org.antagon.acore.module
+package org.antagon.acore.core.module
 
 import org.antagon.acore.Acore
 import org.bukkit.event.HandlerList

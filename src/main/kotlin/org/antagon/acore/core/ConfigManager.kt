@@ -1,40 +1,39 @@
 package org.antagon.acore.core
 
-import org.antagon.acore.api.IConfig
-import org.antagon.acore.config.ConfigFileCreator
-import org.antagon.acore.config.ConfigUpdater
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.FileConfiguration
+import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
+import java.io.IOException
+import java.io.InputStreamReader
+import java.util.logging.Level
 import java.util.logging.Logger
 
 class ConfigManager private constructor(
     private val configFile: File,
-    private val logger: Logger,
-    private val configFileCreator: ConfigFileCreator,
-    private val configUpdater: ConfigUpdater
-) : IConfig {
+    private val logger: Logger
+) {
     private var config: FileConfiguration
 
     init {
-        val defaultConfig = configFileCreator.getDefaultConfig()
-        this.config = configFileCreator.loadConfig(configFile)
-        this.config = configUpdater.updateConfiguration(config, defaultConfig, configFile)
+        createConfigIfAbsent()
+        this.config = YamlConfiguration.loadConfiguration(configFile)
+        this.config = updateConfiguration(this.config)
     }
 
     companion object {
+        private const val REQUIRED_VERSION = 3
         private var instance: ConfigManager? = null
 
         fun initialize(dataFolder: File, pluginLogger: Logger): ConfigManager {
             if (instance == null) {
-                val configFileCreator = ConfigFileCreator(dataFolder, pluginLogger)
-                val configUpdater = ConfigUpdater(pluginLogger)
-                instance = ConfigManager(
-                    configFileCreator.getConfigFile(),
-                    pluginLogger,
-                    configFileCreator,
-                    configUpdater
-                )
+                if (!dataFolder.exists() || !dataFolder.isDirectory) {
+                    if (dataFolder.mkdirs()) {
+                        pluginLogger.info("Created plugin data folder: ${dataFolder.absolutePath}")
+                    }
+                }
+                val configFile = File(dataFolder, "config.yml")
+                instance = ConfigManager(configFile, pluginLogger)
             }
             return instance!!
         }
@@ -44,15 +43,62 @@ class ConfigManager private constructor(
         }
     }
 
-    override fun load() {
+    private fun getDefaultConfig(): FileConfiguration {
+        val resourceStream = javaClass.getResourceAsStream("/config.yml")
+        if (resourceStream == null) {
+            logger.severe("Default configuration resource '/config.yml' not found.")
+            return YamlConfiguration()
+        }
+        return YamlConfiguration.loadConfiguration(InputStreamReader(resourceStream))
+    }
+
+    private fun createConfigIfAbsent() {
+        if (!configFile.exists()) {
+            try {
+                if (configFile.createNewFile()) {
+                    logger.info("Created a new configuration file.")
+                    val defaultConfig = getDefaultConfig()
+                    defaultConfig.save(configFile)
+                }
+            } catch (e: IOException) {
+                logger.log(Level.SEVERE, "Failed to create config file: " + e.message, e)
+            }
+        }
+    }
+
+    private fun updateConfiguration(targetConfig: FileConfiguration): FileConfiguration {
+        val currentVersion = targetConfig.getInt("config-version", 0)
+        if (currentVersion < REQUIRED_VERSION) {
+            logger.info("Updating configuration to version $REQUIRED_VERSION")
+            targetConfig.set("config-version", REQUIRED_VERSION)
+        }
+
+        val defaultConfig = getDefaultConfig()
+        defaultConfig.getKeys(true).stream()
+            .filter { key -> !targetConfig.contains(key) }
+            .forEach { key ->
+                targetConfig.set(key, defaultConfig.get(key))
+                logger.info("Added missing configuration key: $key = ${defaultConfig.get(key)}")
+            }
+
         try {
-            config = configFileCreator.loadConfig(configFile)
+            targetConfig.save(configFile)
+        } catch (e: Exception) {
+            logger.log(Level.SEVERE, "Failed to save updated configuration: " + e.message, e)
+        }
+
+        return targetConfig
+    }
+
+    fun load() {
+        try {
+            config = YamlConfiguration.loadConfiguration(configFile)
         } catch (e: Exception) {
             logger.severe("Failed to load configuration from " + configFile.name + ": " + e.message)
         }
     }
 
-    override fun save() {
+    fun save() {
         try {
             config.save(configFile)
         } catch (e: Exception) {
@@ -60,69 +106,63 @@ class ConfigManager private constructor(
         }
     }
 
-    override fun reload() {
+    fun reload() {
         try {
-            this.config = configFileCreator.loadConfig(configFile)
+            this.config = YamlConfiguration.loadConfiguration(configFile)
         } catch (e: Exception) {
             logger.severe("Failed to reload configuration: " + e.message)
         }
     }
 
-    override fun updateConfigVersion(): FileConfiguration {
-        val defaultConfig = configFileCreator.getDefaultConfig()
-        this.config = configUpdater.updateConfiguration(config, defaultConfig, configFile)
-        return this.config
-    }
-
-    override fun getString(path: String): String? {
+    fun getString(path: String): String? {
         return config.getString(path)
     }
 
-    override fun getString(path: String, defaultValue: String): String {
+    fun getString(path: String, defaultValue: String): String {
         return config.getString(path, defaultValue) ?: defaultValue
     }
 
-    override fun getInt(path: String): Int {
+    fun getInt(path: String): Int {
         return config.getInt(path)
     }
 
-    override fun getInt(path: String, defaultValue: Int): Int {
+    fun getInt(path: String, defaultValue: Int): Int {
         return config.getInt(path, defaultValue)
     }
 
-    override fun getBoolean(path: String): Boolean {
+    fun getBoolean(path: String): Boolean {
         return config.getBoolean(path)
     }
 
-    override fun getBoolean(path: String, defaultValue: Boolean): Boolean {
+    fun getBoolean(path: String, defaultValue: Boolean): Boolean {
         return config.getBoolean(path, defaultValue)
     }
 
-    override fun getDouble(path: String): Double {
+    fun getDouble(path: String): Double {
         return config.getDouble(path)
     }
 
-    override fun getDouble(path: String, defaultValue: Double): Double {
+    fun getDouble(path: String, defaultValue: Double): Double {
         return config.getDouble(path, defaultValue)
     }
 
-    override fun getStringList(path: String): List<String> {
+    fun getStringList(path: String): List<String> {
         return config.getStringList(path)
     }
 
-    override fun set(path: String, value: Any) {
+    fun set(path: String, value: Any) {
         config.set(path, value)
     }
 
-    override fun contains(path: String): Boolean {
+    fun contains(path: String): Boolean {
         return config.contains(path)
     }
 
-    override fun getSection(path: String): ConfigurationSection? {
+    fun getSection(path: String): ConfigurationSection? {
         return config.getConfigurationSection(path)
     }
 
-    override fun getKeys(deep: Boolean): Set<String> {
+    fun getKeys(deep: Boolean): Set<String> {
         return config.getKeys(deep)
     }
 }

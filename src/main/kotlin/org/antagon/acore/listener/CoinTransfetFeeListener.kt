@@ -1,13 +1,10 @@
 package org.antagon.acore.listener
 
-import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.milkbowl.vault.economy.Economy
 import org.antagon.acore.Acore
-import org.antagon.acore.api.CoinsEngineAPI
-import org.antagon.acore.api.Currency
 import org.antagon.acore.core.ConfigManager
-import org.antagon.acore.module.AcoreModule
+import org.antagon.acore.core.module.AcoreModule
 import org.antagon.acore.util.DependencyHandler
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
@@ -124,35 +121,7 @@ class CoinTransferFeeListener(
 
         val mm = MiniMessage.miniMessage()
 
-        // 1. Trying with CoinsEngine API
-        if (DependencyHandler.isPluginEnabled("CoinsEngine")) {
-            var currency: Currency? = null
-            try {
-                currency = CoinsEngineAPI.getCurrency(currencyId)
-                    ?: CoinsEngineAPI.getCurrency("coins")
-                    ?: CoinsEngineAPI.getCurrency("antacoin")
-            } catch (ignored: Throwable) {}
-
-            if (currency != null) {
-                val senderBalance = CoinsEngineAPI.getBalance(sender, currency)
-                if (senderBalance < amount) {
-                    event.isCancelled = true
-                    sender.sendMessage(mm.deserialize("<color:#fc5454>Недостаточно средств! Нужно: <color:#fceba0>$amount</color:#fceba0> <color:#d1d6d5>(у вас: <color:#fceba0>$senderBalance</color:#fceba0>)</color:#d1d6d5></color:#fc5454>"))
-                    return
-                }
-
-                event.isCancelled = true
-                CoinsEngineAPI.removeBalance(sender, currency, amount)
-                CoinsEngineAPI.addBalance(targetPlayer, currency, netAmount)
-
-                sender.sendMessage(mm.deserialize("<color:#d1d6d5>Вы перевели <color:#fceba0>$amount</color:#fceba0> АнтаКойнов игроку <color:#fceba0>${targetPlayer.name}</color:#fceba0>. Комиссия: <color:#fceba0>$fee</color:#fceba0> АнтаКойнов. Получатель получит: <color:#fceba0>$netAmount</color:#fceba0> АнтаКойнов.</color:#d1d6d5>"))
-                targetPlayer.sendMessage(mm.deserialize("<color:#d1d6d5>Вам поступил перевод <color:#fceba0>$netAmount</color:#fceba0> АнтаКойнов от игрока <color:#fceba0>${sender.name}</color:#fceba0> <color:#d1d6d5>(с учетом комиссии <color:#fceba0>$fee</color:#fceba0>)</color:#d1d6d5>.</color:#d1d6d5>"))
-                plugin.logger.info("Player ${sender.name} transferred $amount to ${targetPlayer.name} via CoinsEngine. Fee: $fee, Net: $netAmount")
-                return
-            }
-        }
-
-        // 2. Reserve method by using Vault Economy API
+        // Vault Economy processing
         val vaultEco = getVaultEconomy()
         if (vaultEco != null) {
             val senderBalance = vaultEco.getBalance(sender)
@@ -172,9 +141,9 @@ class CoinTransferFeeListener(
             return
         }
 
-        // If no CoinsEngine and Vault
+        // If no economy provider found
         event.isCancelled = true
-        sender.sendMessage(mm.deserialize("<color:#fc5454>Ошибка экономики: валюта '$currencyId' не найдена ни в CoinsEngine, ни в Vault!</color:#fc5454>"))
-        plugin.logger.warning("CoinTransferFee: Failed to resolve currency '$currencyId' via CoinsEngine and Vault.")
+        sender.sendMessage(mm.deserialize("<color:#fc5454>Ошибка экономики: Vault провайдер не найден для валюты '$currencyId'!</color:#fc5454>"))
+        plugin.logger.warning("CoinTransferFee: Failed to resolve economy provider via Vault.")
     }
 }

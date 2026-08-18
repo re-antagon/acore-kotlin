@@ -1,4 +1,4 @@
-package org.antagon.acore.database
+package org.antagon.acore.core.database
 
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
