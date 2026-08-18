@@ -12,15 +12,27 @@ softdepend: [LuckPerms, ConditionalEvents, MythicMobs, PacketEvents, CoreProtect
 libraries:
   - org.jetbrains.kotlin:kotlin-stdlib:2.3.0
 permissions:
+  permission.admin:
+    description: Permission for admin commands
+    default: op
+    children:
+      - acore.admin
+      - acore.showinfo
+      - acore.link
+      - acore.visualize
+      - acore.fairplay.bypass
+  acore.admin:
+    description: Main permission to administer Acore
+    default: op
   acore.showinfo:
     description: Permission for showinfo command
     default: true
   acore.link:
     description: Permission for link command
     default: true
-  permission.admin:
-    description: Permission for admin commands
+  acore.visualize:
+    description: Permission for CoreProtect phantom visualizer
     default: op
-    children:
-      - acore.showinfo
-      - acore.link
+  acore.fairplay.bypass:
+    description: Permission to bypass Xaero's Minimap fairplay mode enforcement
+    default: op

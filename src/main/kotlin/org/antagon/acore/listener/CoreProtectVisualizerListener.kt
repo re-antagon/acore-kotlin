@@ -299,7 +299,7 @@ class CoreProtectVisualizerListener : AcoreModule, Listener {
                     val holoUuid = UUID.randomUUID()
                     spawnedEntityIds.add(holoEntityId)
                     val timeAgoStr = formatTimeAgo(result.timestamp)
-                    val label = "§e[${materialToRender.name}] §f$actionName: §a${result.player} §7($timeAgoStr)"
+                    val label = "<yellow>[${materialToRender.name}]</yellow> <white>$actionName:</white> <green>${result.player}</green> <gray>($timeAgoStr)</gray>"
                     val yOffset = 1.1 + (stackIndex * 0.35)
                     spawnTextHologram(user, holoEntityId, holoUuid, loc.clone().add(0.5, yOffset, 0.5), label)
                 }
@@ -381,7 +381,7 @@ class CoreProtectVisualizerListener : AcoreModule, Listener {
             val metadataList = mutableListOf<EntityData<*>>()
             // Index 15: Billboard constraints (Byte) in 1.20.5+ / 1.21+ protocol. 3 = CENTER (faces camera 360°)
             metadataList.add(EntityData(15, EntityDataTypes.BYTE, 3.toByte()))
-            metadataList.add(EntityData(23, EntityDataTypes.ADV_COMPONENT, Component.text(label)))
+            metadataList.add(EntityData(23, EntityDataTypes.ADV_COMPONENT, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(label)))
             val metadataPacket = WrapperPlayServerEntityMetadata(entityId, metadataList)
             user.sendPacketSilently(metadataPacket)
         }
@@ -481,9 +481,10 @@ class CoreProtectVisualizerListener : AcoreModule, Listener {
 
             Bukkit.getScheduler().runTaskAsynchronously(Acore.instance, Runnable {
                 val cpPlugin = Bukkit.getPluginManager().getPlugin("CoreProtect") as? CoreProtect
+                val mm = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage()
                 if (cpPlugin == null || !cpPlugin.isEnabled) {
                     Bukkit.getScheduler().runTask(Acore.instance, Runnable {
-                        player.sendMessage("§cCoreProtect не найден или отключен на сервере!")
+                        player.sendMessage(mm.deserialize("<red>CoreProtect не найден или отключен на сервере!</red>"))
                     })
                     return@Runnable
                 }
@@ -518,14 +519,14 @@ class CoreProtectVisualizerListener : AcoreModule, Listener {
                     }
 
                     if (parsedResults.isEmpty()) {
-                        player.sendMessage("§cФантомная визуализация: ни одного объекта не найдено по вашему запросу.")
+                        player.sendMessage(mm.deserialize("<red>Фантомная визуализация: ни одного объекта не найдено по вашему запросу.</red>"))
                         return@Runnable
                     }
 
                     val session = PhantomSession(player, query.durationSeconds)
                     session.spawnPhantomObjects(parsedResults, configManager, query)
                     activeSessions[player.uniqueId] = session
-                    player.sendMessage("§aОтображено ${parsedResults.size.coerceAtMost(configManager.getInt("visualize.max-blocks-limit", 500))} фантомных объектов на ${query.durationSeconds} сек.")
+                    player.sendMessage(mm.deserialize("<green>Отображено ${parsedResults.size.coerceAtMost(configManager.getInt("visualize.max-blocks-limit", 500))} фантомных объектов на ${query.durationSeconds} сек.</green>"))
                 })
             })
         }

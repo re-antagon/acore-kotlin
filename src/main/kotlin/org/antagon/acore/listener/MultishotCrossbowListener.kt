@@ -34,6 +34,11 @@ class MultishotCrossbowListener(
         registerEvents(plugin)
     }
 
+    override fun disable() {
+        super.disable()
+        burstHits.clear()
+    }
+
     private val shotKey = NamespacedKey(plugin, "multishot_shot_id")
     private val burstHits: MutableMap<String, Int> = ConcurrentHashMap()
 

@@ -37,18 +37,22 @@ permissions:
     description: Permission for admin commands
     default: op
     children:
+      - acore.admin
       - acore.showinfo
       - acore.link
-      - acore.admin
+      - acore.visualize
       - acore.fairplay.bypass
+  acore.admin:
+    description: Permission to reload the plugin and manage acore
+    default: op
   acore.showinfo:
     description: Permission for showinfo command
     default: true
   acore.link:
     description: Permission for link command
     default: true
-  acore.admin:
-    description: Permission to reload the plugin and manage acore
+  acore.visualize:
+    description: Permission for CoreProtect phantom visualizer
     default: op
   acore.fairplay.bypass:
     description: Permission to bypass Xaero's Minimap fairplay mode enforcement

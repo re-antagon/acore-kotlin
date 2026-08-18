@@ -39,12 +39,12 @@ class IndicatorPotionListener(
         val configKey: String,
         val defaultCmd: Int,
         val messagePrefix: String,
-        val colorCode: String
+        val colorTag: String
     ) {
-        BLUE_INDICATOR("blue_indicator", 1185, "§9Игроки, ставившие блоки", "§9"),
-        GREEN_INDICATOR("green_indicator", 1187, "§aИгроки, ломавшие блоки", "§a"),
-        PINK_INDICATOR("pink_indicator", 1189, "§dИгроки, взаимодействовавшие с блоками", "§d"),
-        RED_INDICATOR("red_indicator", 1191, "§cИгроки, убивавшие сущности", "§c")
+        BLUE_INDICATOR("blue_indicator", 1185, "<blue>Игроки, ставившие блоки</blue>", "blue"),
+        GREEN_INDICATOR("green_indicator", 1187, "<green>Игроки, ломавшие блоки</green>", "green"),
+        PINK_INDICATOR("pink_indicator", 1189, "<light_purple>Игроки, взаимодействовавшие с блоками</light_purple>", "light_purple"),
+        RED_INDICATOR("red_indicator", 1191, "<red>Игроки, убивавшие сущности</red>", "red")
     }
 
     @EventHandler
@@ -81,7 +81,8 @@ class IndicatorPotionListener(
 
         if (blockTracker.isPlayerOnCooldown(player, cooldown)) {
             val remainingCooldown = blockTracker.getPlayerRemainingCooldown(player, cooldown)
-            player.sendActionBar(Component.text("§cВы недавно использовали зелье! Подождите еще §e$remainingCooldown §cсекунд."))
+            val mm = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage()
+            player.sendActionBar(mm.deserialize("<red>Вы недавно использовали зелье! Подождите еще <yellow>$remainingCooldown</yellow> секунд.</red>"))
             event.isCancelled = true // Cancel the potion throw
             return
         }
@@ -101,6 +102,7 @@ class IndicatorPotionListener(
 
     private fun handleIndicatorPotionEffect(thrownPotion: ThrownPotion, player: Player, potionType: PotionType) {
         val effectLocation = thrownPotion.location
+        val mm = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage()
 
         // Get configuration values
         val radius = configManager.getInt("indicatorPotions.radius", 10)
@@ -116,16 +118,17 @@ class IndicatorPotionListener(
         }
 
         if (players.isEmpty()) {
-            showActionBarForDuration(player, "§7В этом радиусе никого не обнаружено за последние §e$timeHours §7часов.", displayDuration)
+            val noPlayersComponent = mm.deserialize("<gray>В этом радиусе никого не обнаружено за последние <yellow>$timeHours</yellow> часов.</gray>")
+            showActionBarForDuration(player, noPlayersComponent, displayDuration)
             return
         }
 
         // Format message with players highlighted in the potion's color
-        val playerList = players.joinToString("${potionType.colorCode}, ${potionType.colorCode}")
-        val message = "${potionType.messagePrefix}: $potionType.colorCode$playerList"
+        val playerList = players.joinToString("<gray>, </gray>") { "<${potionType.colorTag}>$it</${potionType.colorTag}>" }
+        val messageComponent = mm.deserialize("${potionType.messagePrefix}<gray>: </gray>$playerList")
 
         // Show in action bar for specified duration
-        showActionBarForDuration(player, message, displayDuration)
+        showActionBarForDuration(player, messageComponent, displayDuration)
     }
 
     // Gets the potion type based on Custom Model Data, or null if not an indicator potion
@@ -150,8 +153,7 @@ class IndicatorPotionListener(
         return null
     }
 
-    private fun showActionBarForDuration(player: Player, message: String, seconds: Int) {
-        val component = Component.text(message)
+    private fun showActionBarForDuration(player: Player, component: Component, seconds: Int) {
         // Show initial message
         player.sendActionBar(component)
 

@@ -2,7 +2,7 @@
 config-version: 3
 
 # Select language from "languages" folder, you can add your by creating new file
-language: en-US
+language: ru-RU
 
 # Villager transportation feature - allows moving villagers with camels and llamas
 villagerTransport:

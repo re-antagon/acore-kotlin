@@ -3,7 +3,6 @@ package org.antagon.acore.listener
 import org.antagon.acore.Acore
 import org.antagon.acore.core.ConfigManager
 import org.antagon.acore.core.AcoreModule
-import org.antagon.acore.util.MaterialValidator
 import org.bukkit.Material
 import org.bukkit.block.Block
 import org.bukkit.configuration.ConfigurationSection
@@ -65,7 +64,7 @@ class MinecartSpeedListener(
         }
         for (key in blockTypes.getKeys(false)) {
             try {
-                val blockType = MaterialValidator.validateMaterial(key)
+                val blockType = Material.matchMaterial(key) ?: throw IllegalArgumentException("Material not found: $key")
                 validBlocks[blockType] = blockTypes.getDouble(key)
             } catch (e: IllegalArgumentException) {
                 logger.warning("Invalid material in block-types: $key. ${e.message}")
@@ -80,7 +79,7 @@ class MinecartSpeedListener(
         }
         for (key in railTypes.getKeys(false)) {
             try {
-                val railType = MaterialValidator.validateMaterial(key)
+                val railType = Material.matchMaterial(key) ?: throw IllegalArgumentException("Material not found: $key")
                 validRails[railType] = railTypes.getDouble(key)
             } catch (e: IllegalArgumentException) {
                 logger.warning("Invalid material in rail-types: $key. ${e.message}")

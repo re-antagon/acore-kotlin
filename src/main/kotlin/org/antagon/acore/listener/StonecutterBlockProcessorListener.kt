@@ -16,6 +16,7 @@ import org.bukkit.event.entity.ItemSpawnEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
+import org.bukkit.scheduler.BukkitTask
 import java.util.ArrayList
 import java.util.HashSet
 
@@ -30,17 +31,25 @@ class StonecutterBlockProcessorListener(
         return config.getBoolean("stonecutterBlockProcessor.enabled", true)
     }
 
-    override fun enable() {
-        registerEvents(plugin)
-    }
-
+    private var processingTask: BukkitTask? = null
     private val trackedItems: MutableSet<Item> = HashSet()
     private val crafts = ArrayList<BlockProcessorCraft>()
 
+    override fun enable() {
+        registerEvents(plugin)
+        startProcessingTask()
+    }
+
+    override fun disable() {
+        super.disable()
+        processingTask?.cancel()
+        processingTask = null
+        trackedItems.clear()
+        crafts.clear()
+    }
+
     init {
         loadCrafts()
-        // Start scheduled task to check all dropped items every 5 ticks
-        startProcessingTask()
     }
 
     private fun loadCrafts() {
@@ -123,7 +132,7 @@ class StonecutterBlockProcessorListener(
     }
 
     private fun startProcessingTask() {
-        object : BukkitRunnable() {
+        processingTask = object : BukkitRunnable() {
             override fun run() {
                 processingTask()
             }

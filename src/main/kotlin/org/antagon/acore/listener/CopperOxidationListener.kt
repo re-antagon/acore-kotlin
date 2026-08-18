@@ -57,19 +57,25 @@ class CopperOxidationListener(
         put(Material.EXPOSED_COPPER_TRAPDOOR, Material.WEATHERED_COPPER_TRAPDOOR)
         put(Material.WEATHERED_COPPER_TRAPDOOR, Material.OXIDIZED_COPPER_TRAPDOOR)
 
-        // Stairs (added in 1.21, may not exist on older servers)
-        try {
-            put(Material.valueOf("COPPER_STAIRS"), Material.valueOf("EXPOSED_COPPER_STAIRS"))
-            put(Material.valueOf("EXPOSED_COPPER_STAIRS"), Material.valueOf("WEATHERED_COPPER_STAIRS"))
-            put(Material.valueOf("WEATHERED_COPPER_STAIRS"), Material.valueOf("OXIDIZED_COPPER_STAIRS"))
-        } catch (_: IllegalArgumentException) {}
+        // Cut copper stairs
+        put(Material.CUT_COPPER_STAIRS, Material.EXPOSED_CUT_COPPER_STAIRS)
+        put(Material.EXPOSED_CUT_COPPER_STAIRS, Material.WEATHERED_CUT_COPPER_STAIRS)
+        put(Material.WEATHERED_CUT_COPPER_STAIRS, Material.OXIDIZED_CUT_COPPER_STAIRS)
 
-        // Slabs (added in 1.21, may not exist on older servers)
-        try {
-            put(Material.valueOf("COPPER_SLAB"), Material.valueOf("EXPOSED_COPPER_SLAB"))
-            put(Material.valueOf("EXPOSED_COPPER_SLAB"), Material.valueOf("WEATHERED_COPPER_SLAB"))
-            put(Material.valueOf("WEATHERED_COPPER_SLAB"), Material.valueOf("OXIDIZED_COPPER_SLAB"))
-        } catch (_: IllegalArgumentException) {}
+        // Cut copper slabs
+        put(Material.CUT_COPPER_SLAB, Material.EXPOSED_CUT_COPPER_SLAB)
+        put(Material.EXPOSED_CUT_COPPER_SLAB, Material.WEATHERED_CUT_COPPER_SLAB)
+        put(Material.WEATHERED_CUT_COPPER_SLAB, Material.OXIDIZED_CUT_COPPER_SLAB)
+
+        // Copper grates
+        put(Material.COPPER_GRATE, Material.EXPOSED_COPPER_GRATE)
+        put(Material.EXPOSED_COPPER_GRATE, Material.WEATHERED_COPPER_GRATE)
+        put(Material.WEATHERED_COPPER_GRATE, Material.OXIDIZED_COPPER_GRATE)
+
+        // Chiseled copper
+        put(Material.CHISELED_COPPER, Material.EXPOSED_CHISELED_COPPER)
+        put(Material.EXPOSED_CHISELED_COPPER, Material.WEATHERED_CHISELED_COPPER)
+        put(Material.WEATHERED_CHISELED_COPPER, Material.OXIDIZED_CHISELED_COPPER)
     }.toMap()
 
     init {
@@ -245,9 +251,5 @@ class CopperOxidationListener(
         }
 
         return true
-    }
-
-    private fun isCopper(material: Material): Boolean {
-        return oxidationStages.containsKey(material)
     }
 }

@@ -11,6 +11,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.vehicle.VehicleEnterEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.scheduler.BukkitRunnable
+import org.bukkit.scheduler.BukkitTask
 import java.util.logging.Logger
 
 class VillagerTransportListener(
@@ -24,8 +25,25 @@ class VillagerTransportListener(
         return configManager.getBoolean("villagerTransport.enabled", true)
     }
 
+    private var camelTask: BukkitTask? = null
+    private var llamaTask: BukkitTask? = null
+
     override fun enable() {
         registerEvents(plugin)
+        if (allowCamelTransport) {
+            startCamelDetectionTask()
+        }
+        if (allowLlamaTransport) {
+            startLlamaDetectionTask()
+        }
+    }
+
+    override fun disable() {
+        super.disable()
+        camelTask?.cancel()
+        camelTask = null
+        llamaTask?.cancel()
+        llamaTask = null
     }
 
     private val logger: Logger = plugin.logger
@@ -39,14 +57,6 @@ class VillagerTransportListener(
         allowCamelTransport = configManager.getBoolean("villagerTransport.camel.enabled", true)
         allowLlamaTransport = configManager.getBoolean("villagerTransport.llama.enabled", true)
         teleportOnDismount = configManager.getBoolean("villagerTransport.teleportOnDismount", true)
-
-        if (allowLlamaTransport) {
-            startLlamaDetectionTask()
-        }
-
-        if (allowCamelTransport) {
-            startCamelDetectionTask()
-        }
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -95,7 +105,7 @@ class VillagerTransportListener(
     }
 
     private fun startCamelDetectionTask() {
-        object : BukkitRunnable() {
+        camelTask = object : BukkitRunnable() {
             override fun run() {
                 for (player in plugin.server.onlinePlayers) {
                     val vehicle = player.vehicle
@@ -117,7 +127,7 @@ class VillagerTransportListener(
     }
 
     private fun startLlamaDetectionTask() {
-        object : BukkitRunnable() {
+        llamaTask = object : BukkitRunnable() {
             override fun run() {
                 for (player in plugin.server.onlinePlayers) {
                     // Find llamas near the player within 32 blocks

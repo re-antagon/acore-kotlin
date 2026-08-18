@@ -1,0 +1,27 @@
+console-prefix: "[acore] :"
+prefix: "<#c38154>[<#ffc26f>acore</#ffc26f>]</#c38154> <gray>:</gray>"
+
+# In-game messages
+help: "
+  <dark_gray><st>                                                </st>
+  <#c38154>/acore help <dark_gray>- <#ffc26f>список команд
+  <#c38154>/acore reload <dark_gray>- <#ffc26f>перезагрузить конфигурацию
+  <#c38154>/acore visualize <dark_gray>- <#ffc26f>фантомная визуализация CoreProtect
+  <dark_gray><st>                                                </st>"
+reload: "<#ffc26f>Конфигурация плагина <green>успешно перезагружена!"
+reload-fail: "<color:#fc5454>Не удалось перезагрузить Acore: {error}</color:#fc5454>"
+only-players: "<color:#fc5454>Эта команда доступна только игрокам!</color:#fc5454>"
+visualize-usage: "<yellow>Использование: /acore visualize <CoreProtect lookup аргументы></yellow>"
+visualize-example: "<gray>Пример: /acore visualize action:-block include:ancient_debris time:1h duration:30s</gray>"
+visualize-clear-help: "<gray>Для очистки: /acore visualize clear</gray>"
+visualize-cleared: "<green>Фантомная визуализация очищена.</green>"
+missing-argument: "<red>Недостаточно аргументов в команде</red>"
+wrong-argument: "<red>Неверный аргумент в команде</red>"
+
+# Debug and other console information
+loading-start: "загружается..."
+loading-success: "успешно загружен"
+loading-error: "упс! Что-то пошло не так!"
+enable-success: "<#ffc26f>Плагин Acore <green>успешно включен!</green>"
+disable-success: "<#ffc26f>Плагин Acore <red>выключен.</red>"
+fire-burning-prevented: "<#ffc26f>Горение блока предотвращено около: <#ffc26f>{block.location}"

@@ -7,7 +7,13 @@ help: "
   <#c38154>/acore help <dark_gray>- <#ffc26f>this command
   <#c38154>/acore reload <dark_gray>- <#ffc26f>reload plugin configuration
   <dark_gray><st>                                                </st>"
-reload: "<#ffc26f>config was reloaded <green>successfully"
+reload: "<#ffc26f>Plugin configuration was <green>successfully reloaded!"
+reload-fail: "<color:#fc5454>Failed to reload Acore: {error}</color:#fc5454>"
+only-players: "<color:#fc5454>This command is only available to players!</color:#fc5454>"
+visualize-usage: "<yellow>Usage: /acore visualize <CoreProtect lookup arguments></yellow>"
+visualize-example: "<gray>Example: /acore visualize action:-block include:ancient_debris time:1h duration:30s</gray>"
+visualize-clear-help: "<gray>To clear: /acore visualize clear</gray>"
+visualize-cleared: "<green>Phantom visualization cleared.</green>"
 missing-argument: "<red>missing argument in provided command</red>"
 wrong-argument: "<red>wrong argument in provided command</red>"
 
@@ -15,7 +21,8 @@ wrong-argument: "<red>wrong argument in provided command</red>"
 loading-start: "is loading.."
 loading-success: "successfully loaded"
 loading-error: "oops! Something went wrong!"
-# Placeholders: {block.location}
+enable-success: "<#ffc26f>Acore plugin has been <green>successfully enabled!</green>"
+disable-success: "<#ffc26f>Acore plugin has been <red>disabled.</red>"
 fire-burning-prevented: "<#ffc26f>Fire burning has been prevented near block at: <#ffc26f>{block.location}"
 
 # Some meme shit

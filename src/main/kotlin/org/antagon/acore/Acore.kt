@@ -3,6 +3,7 @@ package org.antagon.acore
 import org.antagon.acore.commands.AcoreCommand
 import org.antagon.acore.core.ConfigManager
 import org.antagon.acore.core.DatabaseManager
+import org.antagon.acore.core.LocalizationManager
 import org.antagon.acore.core.AcoreModule
 import org.antagon.acore.listener.ReferralDao
 import org.antagon.acore.listener.ReferralManager
@@ -22,6 +23,8 @@ class Acore : JavaPlugin() {
     }
 
     lateinit var configManager: ConfigManager
+        private set
+    lateinit var localizationManager: LocalizationManager
         private set
     lateinit var referralManager: ReferralManager
         private set
@@ -46,6 +49,14 @@ class Acore : JavaPlugin() {
         // Initialize config
         configManager = ConfigManager.initialize(dataFolder, logger)
 
+        // Initialize LocalizationManager
+        localizationManager = LocalizationManager(
+            this,
+            java.io.File(dataFolder, "language"),
+            configManager.getString("language", "ru-RU")
+        )
+        localizationManager.loadLanguages()
+
         // Initialize SQLite database
         databaseManager = DatabaseManager(this)
         databaseManager.initialize()
@@ -67,11 +78,14 @@ class Acore : JavaPlugin() {
         // Start cleanup task for trackers
         startCleanupTask()
 
-        logger.info("Acore plugin has been enabled successfully!")
+        localizationManager.sendConsole("enable-success")
     }
 
+    private var cleanupTask: org.bukkit.scheduler.BukkitTask? = null
+
     private fun startCleanupTask() {
-        object : BukkitRunnable() {
+        cleanupTask?.cancel()
+        cleanupTask = object : BukkitRunnable() {
             override fun run() {
                 try {
                     BlockInteractionTracker.getInstance().cleanupOldInteractions()
@@ -86,12 +100,13 @@ class Acore : JavaPlugin() {
 
     fun reloadPlugin() {
         configManager.reload()
+        localizationManager.loadLanguages()
         server.scheduler.cancelTasks(this)
 
         AcoreModule.reloadModules(this)
 
         startCleanupTask()
-        logger.info("Acore plugin has been reloaded successfully!")
+        localizationManager.sendConsole("reload")
     }
 
     private fun checkOptionalDependencies() {
@@ -106,10 +121,17 @@ class Acore : JavaPlugin() {
     }
 
     override fun onDisable() {
+        cleanupTask?.cancel()
+        cleanupTask = null
         AcoreModule.disableAll(this)
         streakManager.shutdown()
         referralManager.shutdown()
         databaseManager.close()
-        logger.info("Acore plugin has been disabled")
+        if (::localizationManager.isInitialized) {
+            localizationManager.sendConsole("disable-success")
+            localizationManager.unregisterTranslator()
+        } else {
+            logger.info("Acore plugin has been disabled")
+        }
     }
 }

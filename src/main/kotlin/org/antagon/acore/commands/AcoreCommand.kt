@@ -48,9 +48,9 @@ class AcoreCommand(
                                 val sender = ctx.source.sender
                                 try {
                                     plugin.reloadPlugin()
-                                    sender.sendMessage(mm.deserialize("<green>Acore plugin reloaded successfully!</green>"))
+                                    plugin.localizationManager.send(sender, "reload")
                                 } catch (e: Exception) {
-                                    sender.sendMessage(mm.deserialize("<color:#fc5454>Failed to reload Acore: ${e.message}</color:#fc5454>"))
+                                    plugin.localizationManager.send(sender, "reload-fail", mapOf("error" to (e.message ?: "unknown")))
                                 }
                                 1
                             }
@@ -61,12 +61,12 @@ class AcoreCommand(
                             .executes { ctx ->
                                 val sender = ctx.source.sender
                                 if (sender !is Player) {
-                                    sender.sendMessage(mm.deserialize("<color:#fc5454>Эта команда доступна только игрокам!</color:#fc5454>"))
+                                    plugin.localizationManager.send(sender, "only-players")
                                     return@executes 1
                                 }
-                                sender.sendMessage(mm.deserialize("<yellow>Использование: /acore visualize <CoreProtect lookup аргументы></yellow>"))
-                                sender.sendMessage(mm.deserialize("<gray>Пример: /acore visualize action:-block include:ancient_debris time:1h duration:30s</gray>"))
-                                sender.sendMessage(mm.deserialize("<gray>Для очистки: /acore visualize clear</gray>"))
+                                plugin.localizationManager.send(sender, "visualize-usage")
+                                plugin.localizationManager.send(sender, "visualize-example")
+                                plugin.localizationManager.send(sender, "visualize-clear-help")
                                 1
                             }
                             .then(
@@ -130,7 +130,7 @@ class AcoreCommand(
                                         val argsStr = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "args")
                                         if (argsStr.equals("clear", ignoreCase = true)) {
                                             org.antagon.acore.listener.CoreProtectVisualizerListener.SessionManager.stopSession(sender)
-                                            sender.sendMessage(mm.deserialize("<green>Фантомная визуализация очищена.</green>"))
+                                            plugin.localizationManager.send(sender, "visualize-cleared")
                                             return@executes 1
                                         }
 

@@ -67,7 +67,8 @@ class FogPotionListener(
 
         if (tracker.isPlayerOnCooldown(player, cooldown)) {
             val remainingCooldown = tracker.getPlayerRemainingCooldown(player, cooldown)
-            player.sendMessage("§cВы недавно использовали зелье! Подождите еще §e$remainingCooldown §cсекунд.")
+            val mm = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage()
+            player.sendMessage(mm.deserialize("<red>Вы недавно использовали зелье! Подождите еще <yellow>$remainingCooldown</yellow> секунд.</red>"))
             event.isCancelled = true // Cancel the potion throw
             return
         }
@@ -87,6 +88,7 @@ class FogPotionListener(
 
     private fun handleFogPotionEffect(thrownPotion: ThrownPotion, player: Player) {
         val effectLocation = thrownPotion.location
+        val mm = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage()
 
         // Get configuration values
         val radius = configManager.getInt("fogPotion.radius", 10)
@@ -96,16 +98,16 @@ class FogPotionListener(
         val lastPlayers = tracker.getLastPlayersInRadius(effectLocation, radius)
 
         if (lastPlayers.isEmpty()) {
-            player.sendMessage("§7В этом радиусе никто не взаимодействовал с блоками недавно.")
+            player.sendMessage(mm.deserialize("<gray>В этом радиусе никто не взаимодействовал с блоками недавно.</gray>"))
             return
         }
 
         // Format message - all player names in white color
-        val playerList = lastPlayers.joinToString("§f, §f")
-        val message = "§aПоследние взаимодействия в радиусе: §f$playerList"
+        val playerList = lastPlayers.joinToString("<white>, </white>") { "<white>$it</white>" }
+        val messageComponent = mm.deserialize("<green>Последние взаимодействия в радиусе: </green>$playerList")
 
         // Show in action bar for specified duration
-        showActionBarForDuration(player, message, displayDuration)
+        showActionBarForDuration(player, messageComponent, displayDuration)
     }
 
     private fun getCustomModelData(potion: ThrownPotion): Int {
@@ -121,8 +123,7 @@ class FogPotionListener(
         return -1 // Return -1 if no Custom Model Data is found
     }
 
-    private fun showActionBarForDuration(player: Player, message: String, seconds: Int) {
-        val component = Component.text(message)
+    private fun showActionBarForDuration(player: Player, component: Component, seconds: Int) {
         // Show initial message
         player.sendActionBar(component)
 
