@@ -23,6 +23,7 @@ repositories {
     maven("https://mvn.lumine.io/repository/maven-public/")
     maven("https://repo.codemc.org/repository/maven-public/")
     maven("https://maven.playpro.com/")
+    maven("https://repo.extendedclip.com/releases/")
 }
 
 dependencies {
@@ -34,6 +35,8 @@ dependencies {
     compileOnly("net.luckperms:api:5.4")                             // LuckPerms api
     compileOnly("net.kyori:adventure-api:4.26.1")                    // Adventure API
     compileOnly("net.kyori:adventure-text-minimessage:4.26.1")       // Adventure Text MiniMessage
+    compileOnly("me.clip:placeholderapi:2.11.6")                    // PlaceholderAPI
+    compileOnly("org.xerial:sqlite-jdbc:3.49.1.0")                   // SQLite JDBC API
     compileOnly("com.github.MilkBowl:VaultAPI:1.7") {                // Vault api
         exclude(group = "org.bukkit", module = "bukkit")
         exclude(group = "org.bukkit", module = "craftbukkit")

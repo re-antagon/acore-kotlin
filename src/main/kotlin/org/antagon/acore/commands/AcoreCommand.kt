@@ -15,12 +15,15 @@ import org.antagon.acore.core.ConfigManager
 import org.antagon.acore.util.ReferralManager
 import org.bukkit.entity.Player
 
+import com.mojang.brigadier.arguments.IntegerArgumentType
+import org.antagon.acore.streak.StreakManager
 import org.antagon.acore.util.DependencyHandler
 
 class AcoreCommand(
     private val plugin: Acore,
     private val configManager: ConfigManager,
-    private val referralManager: ReferralManager
+    private val referralManager: ReferralManager,
+    private val streakManager: StreakManager
 ) {
 
     companion object {
@@ -133,6 +136,100 @@ class AcoreCommand(
                                         org.antagon.acore.listener.CoreProtectVisualizerListener.SessionManager.startSession(sender, query, configManager)
                                         1
                                     }
+                            )
+                    )
+                    .then(
+                        Commands.literal("streak")
+                            .requires { source -> source.sender.hasPermission("acore.streak.admin") }
+                            .then(
+                                Commands.literal("get")
+                                    .then(
+                                        Commands.argument("player", ArgumentTypes.player())
+                                            .executes { ctx ->
+                                                val sender = ctx.source.sender
+                                                val resolver = ctx.getArgument("player", PlayerSelectorArgumentResolver::class.java)
+                                                val resolved = resolver.resolve(ctx.source)
+                                                if (resolved.isEmpty()) {
+                                                    sender.sendMessage("§cИгрок не найден!")
+                                                    return@executes 1
+                                                }
+                                                val target = resolved.first()
+                                                val data = streakManager.getCachedData(target.uniqueId) ?: streakManager.loadOrInit(target.uniqueId)
+                                                sender.sendMessage("§6=== Статистика стрика: §e${target.name} §6===")
+                                                sender.sendMessage("§7Текущий стрик: §a${data.currentStreak} дн.")
+                                                sender.sendMessage("§7Рекордный стрик: §a${data.highestStreak} дн.")
+                                                sender.sendMessage("§7Всего дней входа: §a${data.totalLogins}")
+                                                sender.sendMessage("§7Заморозок: §b${data.streakFreezes}")
+                                                sender.sendMessage("§7Последний вход: §e${data.lastLoginDate ?: "Никогда"}")
+                                                sender.sendMessage("§7До сброса суток: §e${streakManager.getTimeUntilReset()}")
+                                                1
+                                            }
+                                    )
+                            )
+                            .then(
+                                Commands.literal("set")
+                                    .then(
+                                        Commands.argument("player", ArgumentTypes.player())
+                                            .then(
+                                                Commands.argument("amount", IntegerArgumentType.integer(0))
+                                                    .executes { ctx ->
+                                                        val sender = ctx.source.sender
+                                                        val resolver = ctx.getArgument("player", PlayerSelectorArgumentResolver::class.java)
+                                                        val resolved = resolver.resolve(ctx.source)
+                                                        if (resolved.isEmpty()) {
+                                                            sender.sendMessage("§cИгрок не найден!")
+                                                            return@executes 1
+                                                        }
+                                                        val target = resolved.first()
+                                                        val amount = IntegerArgumentType.getInteger(ctx, "amount")
+                                                        streakManager.setStreak(target.uniqueId, amount)
+                                                        sender.sendMessage("§aСтрик игрока ${target.name} успешно установлен на $amount дн.")
+                                                        1
+                                                    }
+                                            )
+                                    )
+                            )
+                            .then(
+                                Commands.literal("addfreeze")
+                                    .then(
+                                        Commands.argument("player", ArgumentTypes.player())
+                                            .then(
+                                                Commands.argument("amount", IntegerArgumentType.integer())
+                                                    .executes { ctx ->
+                                                        val sender = ctx.source.sender
+                                                        val resolver = ctx.getArgument("player", PlayerSelectorArgumentResolver::class.java)
+                                                        val resolved = resolver.resolve(ctx.source)
+                                                        if (resolved.isEmpty()) {
+                                                            sender.sendMessage("§cИгрок не найден!")
+                                                            return@executes 1
+                                                        }
+                                                        val target = resolved.first()
+                                                        val amount = IntegerArgumentType.getInteger(ctx, "amount")
+                                                        val data = streakManager.addFreezes(target.uniqueId, amount)
+                                                        sender.sendMessage("§aЗаморозки игрока ${target.name} изменены на $amount. Новый баланс: ${data.streakFreezes}")
+                                                        1
+                                                    }
+                                            )
+                                    )
+                            )
+                            .then(
+                                Commands.literal("reset")
+                                    .then(
+                                        Commands.argument("player", ArgumentTypes.player())
+                                            .executes { ctx ->
+                                                val sender = ctx.source.sender
+                                                val resolver = ctx.getArgument("player", PlayerSelectorArgumentResolver::class.java)
+                                                val resolved = resolver.resolve(ctx.source)
+                                                if (resolved.isEmpty()) {
+                                                    sender.sendMessage("§cИгрок не найден!")
+                                                    return@executes 1
+                                                }
+                                                val target = resolved.first()
+                                                streakManager.resetStreak(target.uniqueId)
+                                                sender.sendMessage("§aСтрик игрока ${target.name} сброшен.")
+                                                1
+                                            }
+                                    )
                             )
                     )
                     .build(),

@@ -7,7 +7,7 @@ prefix: acore
 api-version: '1.21'
 website: https://reborn.antagon.su
 
-softdepend: [LuckPerms, ConditionalEvents, MythicMobs, PacketEvents, CoreProtect, CoinsEngine, Vault]
+softdepend: [LuckPerms, ConditionalEvents, MythicMobs, PacketEvents, CoreProtect, CoinsEngine, Vault, PlaceholderAPI]
 
 libraries:
   - org.jetbrains.kotlin:kotlin-stdlib:2.3.0
@@ -18,9 +18,13 @@ permissions:
   acore.link:
     description: Permission for link command
     default: true
+  acore.streak.admin:
+    description: Permission for streak admin commands
+    default: op
   permission.admin:
     description: Permission for admin commands
     default: op
     children:
       - acore.showinfo
       - acore.link
+      - acore.streak.admin

@@ -303,4 +303,12 @@ coinTransferFee:
     - "coinsengine pay"
     - "coinsengine send"
 
+# Daily login streaks module
+streak:
+  enabled: true
+  # Server timezone for daily reset (e.g. Europe/Moscow, UTC+3, UTC)
+  timezone: "Europe/Moscow"
+  # Reset hour in the specified timezone (0 = midnight 00:00, 4 = 04:00 AM)
+  reset-hour: 0
+
 

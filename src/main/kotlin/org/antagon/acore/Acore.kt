@@ -2,8 +2,12 @@ package org.antagon.acore
 
 import org.antagon.acore.commands.AcoreCommand
 import org.antagon.acore.core.ConfigManager
+import org.antagon.acore.database.DatabaseManager
 import org.antagon.acore.fairplay.XaeroFairPlayManager
 import org.antagon.acore.module.AcoreModule
+import org.antagon.acore.streak.StreakManager
+import org.antagon.acore.streak.papi.StreakPlaceholderExpansion
+import org.antagon.acore.streak.storage.StreakDao
 import org.antagon.acore.util.BlockInteractionTracker
 import org.antagon.acore.util.DependencyHandler
 import org.antagon.acore.util.EntityKillTracker
@@ -23,6 +27,10 @@ class Acore : JavaPlugin() {
     lateinit var referralManager: ReferralManager
         private set
     lateinit var xaeroFairPlayManager: XaeroFairPlayManager
+        private set
+    lateinit var databaseManager: DatabaseManager
+        private set
+    lateinit var streakManager: StreakManager
         private set
 
     override fun onLoad() {
@@ -47,6 +55,20 @@ class Acore : JavaPlugin() {
         // Initialize config
         configManager = ConfigManager.initialize(dataFolder, logger)
 
+        // Initialize SQLite database
+        databaseManager = DatabaseManager(this)
+        databaseManager.initialize()
+
+        // Initialize StreakManager
+        val streakDao = StreakDao(databaseManager)
+        streakManager = StreakManager(this, streakDao, configManager)
+
+        // Register PlaceholderAPI expansion if available
+        if (DependencyHandler.isPluginEnabled("PlaceholderAPI")) {
+            StreakPlaceholderExpansion(this, streakManager).register()
+            logger.info("PlaceholderAPI expansion for Acore registered successfully.")
+        }
+
         // Initialize PacketEvents / XaeroFairPlayManager
         xaeroFairPlayManager.init()
 
@@ -54,7 +76,7 @@ class Acore : JavaPlugin() {
         referralManager = ReferralManager(this)
 
         // Register commands
-        AcoreCommand(this, configManager, referralManager).register()
+        AcoreCommand(this, configManager, referralManager, streakManager).register()
 
         // Auto-discover and enable all modules via reflection
         AcoreModule.reloadModules(this)
@@ -90,7 +112,7 @@ class Acore : JavaPlugin() {
     }
 
     private fun checkOptionalDependencies() {
-        val softDeps = listOf("LuckPerms", "ConditionalEvents", "MythicMobs", "PacketEvents")
+        val softDeps = listOf("LuckPerms", "ConditionalEvents", "MythicMobs", "PacketEvents", "PlaceholderAPI")
         for (dep in softDeps) {
             if (DependencyHandler.isPluginEnabled(dep)) {
                 logger.info("Optional dependency '$dep' found and enabled.")
@@ -102,6 +124,12 @@ class Acore : JavaPlugin() {
 
     override fun onDisable() {
         AcoreModule.disableAll(this)
+        if (::streakManager.isInitialized) {
+            streakManager.shutdown()
+        }
+        if (::databaseManager.isInitialized) {
+            databaseManager.close()
+        }
         xaeroFairPlayManager.terminate()
         logger.info("Acore plugin has been disabled")
     }
