@@ -365,10 +365,10 @@ class StreakPlaceholderExpansion(
         val today = streakManager.getEffectiveToday()
 
         return when (params.lowercase()) {
-            "streak", "streak_current" -> data.currentStreak.toString()
-            "streak_max", "streak_highest" -> data.highestStreak.toString()
-            "streak_total", "streak_total_logins" -> data.totalLogins.toString()
-            "streak_freezes" -> data.streakFreezes.toString()
+            "streak" -> data.currentStreak.toString()
+            "streak_max" -> data.highestStreak.toString()
+            "streak_total" -> data.totalLogins.toString()
+            "streak_protection" -> data.streakFreezes.toString()
             "streak_last_login" -> data.lastLoginDate?.toString() ?: "Never"
             "streak_time_until_reset" -> streakManager.getTimeUntilReset()
             "streak_is_active_today" -> (data.lastLoginDate == today).toString()
