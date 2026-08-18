@@ -3,8 +3,8 @@ package org.antagon.acore.listener
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.antagon.acore.Acore
 import org.antagon.acore.core.ConfigManager
-import org.antagon.acore.core.database.DatabaseManager
-import org.antagon.acore.core.module.AcoreModule
+import org.antagon.acore.core.DatabaseManager
+import org.antagon.acore.core.AcoreModule
 import org.bukkit.Bukkit
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player

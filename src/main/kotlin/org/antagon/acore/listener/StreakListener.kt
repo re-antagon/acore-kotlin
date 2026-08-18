@@ -3,8 +3,8 @@ package org.antagon.acore.listener
 import me.clip.placeholderapi.expansion.PlaceholderExpansion
 import org.antagon.acore.Acore
 import org.antagon.acore.core.ConfigManager
-import org.antagon.acore.core.database.DatabaseManager
-import org.antagon.acore.core.module.AcoreModule
+import org.antagon.acore.core.DatabaseManager
+import org.antagon.acore.core.AcoreModule
 import org.antagon.acore.util.DependencyHandler
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player

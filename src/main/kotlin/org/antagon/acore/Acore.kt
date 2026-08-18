@@ -2,8 +2,8 @@ package org.antagon.acore
 
 import org.antagon.acore.commands.AcoreCommand
 import org.antagon.acore.core.ConfigManager
-import org.antagon.acore.core.database.DatabaseManager
-import org.antagon.acore.core.module.AcoreModule
+import org.antagon.acore.core.DatabaseManager
+import org.antagon.acore.core.AcoreModule
 import org.antagon.acore.listener.ReferralDao
 import org.antagon.acore.listener.ReferralManager
 import org.antagon.acore.listener.StreakDao

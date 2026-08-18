@@ -5,7 +5,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.antagon.acore.Acore
-import org.antagon.acore.core.module.AcoreModule
+import org.antagon.acore.core.AcoreModule
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Material

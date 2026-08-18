@@ -4,7 +4,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 import net.milkbowl.vault.economy.Economy
 import org.antagon.acore.Acore
 import org.antagon.acore.core.ConfigManager
-import org.antagon.acore.core.module.AcoreModule
+import org.antagon.acore.core.AcoreModule
 import org.antagon.acore.util.DependencyHandler
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
