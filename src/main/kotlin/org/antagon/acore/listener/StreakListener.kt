@@ -317,6 +317,21 @@ class StreakManager(
         return data
     }
 
+    fun getStreakColor(streak: Int): String {
+        return when {
+            streak >= 250 -> "<#9C27B0>"
+            streak >= 180 -> "<#7F3CC4>"
+            streak >= 126 -> "<#6250D8>"
+            streak >= 86  -> "<#4664EB>"
+            streak >= 56  -> "<#2979FF>"
+            streak >= 35  -> "<#FF5722>"
+            streak >= 20  -> "<#ED4820>"
+            streak >= 10  -> "<#DB3A1F>"
+            streak >= 4   -> "<#C92B1E>"
+            else          -> "<#B71C1C>"
+        }
+    }
+
     fun shutdown() {
         plugin.logger.info("Flushing streak data cache to SQLite...")
 
@@ -366,6 +381,7 @@ class StreakPlaceholderExpansion(
 
         return when (params.lowercase()) {
             "streak" -> data.currentStreak.toString()
+            "streak_color" -> streakManager.getStreakColor(data.currentStreak)
             "streak_max" -> data.highestStreak.toString()
             "streak_total" -> data.totalLogins.toString()
             "streak_protection" -> data.streakFreezes.toString()
