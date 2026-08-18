@@ -5,12 +5,13 @@ import org.antagon.acore.core.ConfigManager
 import org.antagon.acore.database.DatabaseManager
 import org.antagon.acore.fairplay.XaeroFairPlayManager
 import org.antagon.acore.module.AcoreModule
+import org.antagon.acore.referral.ReferralManager
+import org.antagon.acore.referral.storage.ReferralDao
 import org.antagon.acore.streak.StreakManager
 import org.antagon.acore.streak.storage.StreakDao
 import org.antagon.acore.util.BlockInteractionTracker
 import org.antagon.acore.util.DependencyHandler
 import org.antagon.acore.util.EntityKillTracker
-import org.antagon.acore.util.ReferralManager
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
 
@@ -66,7 +67,8 @@ class Acore : JavaPlugin() {
         xaeroFairPlayManager.init()
 
         // Initialize referral manager
-        referralManager = ReferralManager(this)
+        val referralDao = ReferralDao(databaseManager)
+        referralManager = ReferralManager(this, referralDao)
 
         // Register commands
         AcoreCommand(this, configManager, referralManager, streakManager).register()
@@ -118,6 +120,7 @@ class Acore : JavaPlugin() {
     override fun onDisable() {
         AcoreModule.disableAll(this)
         streakManager.shutdown()
+        referralManager.shutdown()
         databaseManager.close()
         xaeroFairPlayManager.terminate()
         logger.info("Acore plugin has been disabled")

@@ -83,6 +83,39 @@ class DatabaseManager(private val plugin: JavaPlugin) {
                     conn.autoCommit = prevAutoCommit
                 }
             }
+
+            if (currentVersion < 2) {
+                val prevAutoCommit = conn.autoCommit
+                conn.autoCommit = false
+                try {
+                    conn.createStatement().use { stmt ->
+                        stmt.executeUpdate(
+                            """
+                            CREATE TABLE IF NOT EXISTS player_referrals (
+                                referral_uuid VARCHAR(36) PRIMARY KEY NOT NULL,
+                                inviter_uuid VARCHAR(36) NOT NULL,
+                                start_time BIGINT NOT NULL DEFAULT 0,
+                                rewarded INTEGER NOT NULL DEFAULT 0,
+                                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                            );
+                            """.trimIndent()
+                        )
+                        stmt.executeUpdate(
+                            """
+                            CREATE INDEX IF NOT EXISTS idx_referrals_inviter ON player_referrals(inviter_uuid);
+                            """.trimIndent()
+                        )
+                        stmt.executeUpdate("PRAGMA user_version = 2;")
+                    }
+                    conn.commit()
+                    plugin.logger.info("Applied database migration v2 (player_referrals table).")
+                } catch (e: Exception) {
+                    conn.rollback()
+                    throw e
+                } finally {
+                    conn.autoCommit = prevAutoCommit
+                }
+            }
         }
     }
 

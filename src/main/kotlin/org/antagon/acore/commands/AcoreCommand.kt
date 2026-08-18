@@ -12,7 +12,7 @@ import net.luckperms.api.LuckPermsProvider
 import net.luckperms.api.node.types.PermissionNode
 import org.antagon.acore.Acore
 import org.antagon.acore.core.ConfigManager
-import org.antagon.acore.util.ReferralManager
+import org.antagon.acore.referral.ReferralManager
 import org.bukkit.entity.Player
 
 import com.mojang.brigadier.arguments.IntegerArgumentType
@@ -37,6 +37,8 @@ class AcoreCommand(
             val commands = event.registrar()
 
             // 1. Register /acore reload and /acore visualize
+            val mm = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage()
+
             commands.register(
                 Commands.literal("acore")
                     .then(
@@ -46,9 +48,9 @@ class AcoreCommand(
                                 val sender = ctx.source.sender
                                 try {
                                     plugin.reloadPlugin()
-                                    sender.sendMessage(Component.text("§aAcore plugin reloaded successfully!"))
+                                    sender.sendMessage(mm.deserialize("<green>Acore plugin reloaded successfully!</green>"))
                                 } catch (e: Exception) {
-                                    sender.sendMessage(Component.text("§cFailed to reload Acore: ${e.message}"))
+                                    sender.sendMessage(mm.deserialize("<color:#fc5454>Failed to reload Acore: ${e.message}</color:#fc5454>"))
                                 }
                                 1
                             }
@@ -59,12 +61,12 @@ class AcoreCommand(
                             .executes { ctx ->
                                 val sender = ctx.source.sender
                                 if (sender !is Player) {
-                                    sender.sendMessage("§cЭта команда доступна только игрокам!")
+                                    sender.sendMessage(mm.deserialize("<color:#fc5454>Эта команда доступна только игрокам!</color:#fc5454>"))
                                     return@executes 1
                                 }
-                                sender.sendMessage("§eИспользование: /acore visualize <CoreProtect lookup аргументы>")
-                                sender.sendMessage("§7Пример: /acore visualize action:-block include:ancient_debris time:1h duration:30s")
-                                sender.sendMessage("§7Для очистки: /acore visualize clear")
+                                sender.sendMessage(mm.deserialize("<yellow>Использование: /acore visualize <CoreProtect lookup аргументы></yellow>"))
+                                sender.sendMessage(mm.deserialize("<gray>Пример: /acore visualize action:-block include:ancient_debris time:1h duration:30s</gray>"))
+                                sender.sendMessage(mm.deserialize("<gray>Для очистки: /acore visualize clear</gray>"))
                                 1
                             }
                             .then(
@@ -121,14 +123,14 @@ class AcoreCommand(
                                     .executes { ctx ->
                                         val sender = ctx.source.sender
                                         if (sender !is Player) {
-                                            sender.sendMessage("§cЭта команда доступна только игрокам!")
+                                            sender.sendMessage(mm.deserialize("<color:#fc5454>Эта команда доступна только игрокам!</color:#fc5454>"))
                                             return@executes 1
                                         }
 
                                         val argsStr = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "args")
                                         if (argsStr.equals("clear", ignoreCase = true)) {
                                             org.antagon.acore.listener.CoreProtectVisualizerListener.SessionManager.stopSession(sender)
-                                            sender.sendMessage("§aФантомная визуализация очищена.")
+                                            sender.sendMessage(mm.deserialize("<green>Фантомная визуализация очищена.</green>"))
                                             return@executes 1
                                         }
 
@@ -149,7 +151,6 @@ class AcoreCommand(
                                                 val sender = ctx.source.sender
                                                 val resolver = ctx.getArgument("player", PlayerSelectorArgumentResolver::class.java)
                                                 val resolved = resolver.resolve(ctx.source)
-                                                val mm = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage()
                                                 if (resolved.isEmpty()) {
                                                     sender.sendMessage(mm.deserialize("<color:#fc5454>Игрок не найден!</color:#fc5454>"))
                                                     return@executes 1
@@ -177,7 +178,6 @@ class AcoreCommand(
                                                         val sender = ctx.source.sender
                                                         val resolver = ctx.getArgument("player", PlayerSelectorArgumentResolver::class.java)
                                                         val resolved = resolver.resolve(ctx.source)
-                                                        val mm = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage()
                                                         if (resolved.isEmpty()) {
                                                             sender.sendMessage(mm.deserialize("<color:#fc5454>Игрок не найден!</color:#fc5454>"))
                                                             return@executes 1
@@ -201,7 +201,6 @@ class AcoreCommand(
                                                         val sender = ctx.source.sender
                                                         val resolver = ctx.getArgument("player", PlayerSelectorArgumentResolver::class.java)
                                                         val resolved = resolver.resolve(ctx.source)
-                                                        val mm = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage()
                                                         if (resolved.isEmpty()) {
                                                             sender.sendMessage(mm.deserialize("<color:#fc5454>Игрок не найден!</color:#fc5454>"))
                                                             return@executes 1
@@ -223,7 +222,6 @@ class AcoreCommand(
                                                 val sender = ctx.source.sender
                                                 val resolver = ctx.getArgument("player", PlayerSelectorArgumentResolver::class.java)
                                                 val resolved = resolver.resolve(ctx.source)
-                                                val mm = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage()
                                                 if (resolved.isEmpty()) {
                                                     sender.sendMessage(mm.deserialize("<color:#fc5454>Игрок не найден!</color:#fc5454>"))
                                                     return@executes 1
@@ -249,7 +247,7 @@ class AcoreCommand(
                         .executes { ctx ->
                             val sender = ctx.source.sender
                             if (sender !is Player) {
-                                sender.sendMessage("§cЭта команда доступна только игрокам!")
+                                sender.sendMessage(mm.deserialize("<color:#fc5454>Эта команда доступна только игрокам!</color:#fc5454>"))
                                 return@executes 1
                             }
 
@@ -258,13 +256,13 @@ class AcoreCommand(
 
                             val luckPerms = DependencyHandler.getLuckPerms()
                             if (luckPerms == null) {
-                                player.sendMessage("§cОшибка: данные LuckPerms еще не загружены!")
+                                player.sendMessage(mm.deserialize("<color:#fc5454>Ошибка: данные LuckPerms еще не загружены!</color:#fc5454>"))
                                 return@executes 1
                             }
 
                             val user = luckPerms.userManager.getUser(player.uniqueId)
                             if (user == null) {
-                                player.sendMessage("§cОшибка: данные LuckPerms еще не загружены!")
+                                player.sendMessage(mm.deserialize("<color:#fc5454>Ошибка: данные LuckPerms еще не загружены!</color:#fc5454>"))
                                 return@executes 1
                             }
 
@@ -272,12 +270,12 @@ class AcoreCommand(
                                 val node = PermissionNode.builder("bossbar.show").value(false).build()
                                 user.data().add(node)
                                 luckPerms.userManager.saveUser(user)
-                                player.sendMessage("§cBossbar отключен!")
+                                player.sendMessage(mm.deserialize("<color:#fc5454>Bossbar отключен!</color:#fc5454>"))
                             } else {
                                 val node = PermissionNode.builder("bossbar.show").value(true).build()
                                 user.data().add(node)
                                 luckPerms.userManager.saveUser(user)
-                                player.sendMessage("§aBossbar включен!")
+                                player.sendMessage(mm.deserialize("<green>Bossbar включен!</green>"))
                             }
                             1
                         }
@@ -297,7 +295,7 @@ class AcoreCommand(
                             .executes { ctx ->
                                 val sender = ctx.source.sender
                                 if (sender !is Player) {
-                                    sender.sendMessage("§cЭта команда доступна только игрокам!")
+                                    sender.sendMessage(mm.deserialize("<color:#fc5454>Эта команда доступна только игрокам!</color:#fc5454>"))
                                     return@executes 1
                                 }
 
@@ -305,20 +303,20 @@ class AcoreCommand(
 
                                 // Check if feature is enabled
                                 if (!configManager.getBoolean("referrals.enabled", true)) {
-                                    inviter.sendMessage("§cЭта фича временно отключена!")
+                                    inviter.sendMessage(mm.deserialize("<color:#fc5454>Эта фича временно отключена!</color:#fc5454>"))
                                     return@executes 1
                                 }
 
                                 val resolver = ctx.getArgument("player", PlayerSelectorArgumentResolver::class.java)
                                 val resolvedPlayers = resolver.resolve(ctx.source)
                                 if (resolvedPlayers.isEmpty()) {
-                                    inviter.sendMessage("§cИгрок не найден!")
+                                    inviter.sendMessage(mm.deserialize("<color:#fc5454>Игрок не найден!</color:#fc5454>"))
                                     return@executes 1
                                 }
                                 val referral = resolvedPlayers.first()
 
                                 if (referral == inviter) {
-                                    inviter.sendMessage("§cВы не можете пригласить самого себя!")
+                                    inviter.sendMessage(mm.deserialize("<color:#fc5454>Вы не можете пригласить самого себя!</color:#fc5454>"))
                                     return@executes 1
                                 }
 
@@ -326,14 +324,14 @@ class AcoreCommand(
                                 val referralIp = referral.address?.address?.hostAddress
 
                                 if (inviterIp != null && referralIp != null && inviterIp == referralIp) {
-                                    inviter.sendMessage("§cВы не можете пригласить игрока с таким же IP-адресом!")
+                                    inviter.sendMessage(mm.deserialize("<color:#fc5454>Вы не можете пригласить игрока с таким же IP-адресом!</color:#fc5454>"))
                                     return@executes 1
                                 }
 
                                 val referralId = referral.uniqueId
 
                                 if (referralManager.isReferral(referralId)) {
-                                    inviter.sendMessage("§cЭтот игрок уже является рефералом!")
+                                    inviter.sendMessage(mm.deserialize("<color:#fc5454>Этот игрок уже является рефералом!</color:#fc5454>"))
                                     return@executes 1
                                 }
 
@@ -343,7 +341,7 @@ class AcoreCommand(
                                 // Send invitation message to referral
                                 sendInvitationMessage(inviter, referral)
 
-                                inviter.sendMessage("§aПриглашение отправлено игроку ${referral.name}")
+                                inviter.sendMessage(mm.deserialize("<green>Приглашение отправлено игроку <yellow>${referral.name}</yellow></green>"))
                                 1
                             }
                     )
@@ -354,17 +352,12 @@ class AcoreCommand(
     }
 
     private fun sendInvitationMessage(inviter: Player, referral: Player) {
-        val message = Component.text("Вы являетесь рефералом игрока ")
-            .color(NamedTextColor.YELLOW)
-            .append(Component.text(inviter.name).color(NamedTextColor.GREEN))
-            .append(Component.text(". Принять приглашение?\n").color(NamedTextColor.YELLOW))
-            .append(Component.text("[ДА]").color(NamedTextColor.GREEN)
-                .decorate(TextDecoration.BOLD)
-                .clickEvent(ClickEvent.runCommand("/referral_accept ${inviter.name} ${referral.name}")))
-            .append(Component.text(" "))
-            .append(Component.text("[НЕТ]").color(NamedTextColor.RED)
-                .decorate(TextDecoration.BOLD)
-                .clickEvent(ClickEvent.runCommand("/referral_decline ${inviter.name} ${referral.name}")))
+        val mm = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage()
+        val message = mm.deserialize(
+            "<yellow>Вы являетесь рефералом игрока <green>${inviter.name}</green>. Принять приглашение?</yellow>\n" +
+            "<green><bold><click:run_command:/referral_accept ${inviter.name} ${referral.name}>[ДА]</click></bold></green> " +
+            "<color:#fc5454><bold><click:run_command:/referral_decline ${inviter.name} ${referral.name}>[НЕТ]</click></bold></color:#fc5454>"
+        )
 
         referral.sendMessage(message)
     }

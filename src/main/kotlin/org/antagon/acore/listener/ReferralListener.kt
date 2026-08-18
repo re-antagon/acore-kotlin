@@ -1,9 +1,10 @@
 package org.antagon.acore.listener
 
+import net.kyori.adventure.text.minimessage.MiniMessage
 import org.antagon.acore.Acore
 import org.antagon.acore.core.ConfigManager
 import org.antagon.acore.module.AcoreModule
-import org.antagon.acore.util.ReferralManager
+import org.antagon.acore.referral.ReferralManager
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -22,6 +23,7 @@ class ReferralListener(
     override val name: String = "Referrals"
 
     private var task: BukkitTask? = null
+    private val mm = MiniMessage.miniMessage()
 
     override fun shouldEnable(): Boolean {
         return configManager.getBoolean("referrals.enabled", true)
@@ -79,13 +81,13 @@ class ReferralListener(
                             val inviter = Bukkit.getPlayer(inviterId)
                             if (inviter != null) {
                                 giveReward(inviter, 9)
-                                inviter.sendMessage("§aВаш реферал ${player.name} отыграл 7 часов! Вы получили награду.")
+                                inviter.sendMessage(mm.deserialize("<green>Ваш реферал <yellow>${player.name}</yellow> отыграл 7 часов! Вы получили награду.</green>"))
                             }
                         }
 
                         // Mark as rewarded
                         referralManager.markReferralRewarded(playerId)
-                        player.sendMessage("§aВы отыграли 7 часов как реферал! Ваш пригласивший получил награду.")
+                        player.sendMessage(mm.deserialize("<green>Вы отыграли 7 часов как реферал! Ваш пригласивший получил награду.</green>"))
                         plugin.logger.info("Referral ${player.name} completed 7 hours playtime")
                     }
                 }
@@ -101,14 +103,14 @@ class ReferralListener(
 
         val inviter = Bukkit.getPlayer(inviterName)
         if (inviter == null) {
-            referral.sendMessage("§cПригласивший игрок не найден!")
+            referral.sendMessage(mm.deserialize("<color:#fc5454>Пригласивший игрок не найден!</color:#fc5454>"))
             return
         }
 
         // Verify that there is a pending invite from this inviter
         val pendingInviterId = referralManager.getPendingInviter(referral.uniqueId)
         if (pendingInviterId != inviter.uniqueId) {
-            referral.sendMessage("§cУ вас нет активного приглашения от этого игрока!")
+            referral.sendMessage(mm.deserialize("<color:#fc5454>У вас нет активного приглашения от этого игрока!</color:#fc5454>"))
             return
         }
 
@@ -116,15 +118,15 @@ class ReferralListener(
         val inviterIp = inviter.address?.address?.hostAddress
 
         if (referralIp != null && inviterIp != null && referralIp == inviterIp) {
-            referral.sendMessage("§cВы не можете принять приглашение от игрока с таким же IP-адресом!")
-            inviter.sendMessage("§cИгрок $referralName имеет такой же IP-адрес, как и вы!")
+            referral.sendMessage(mm.deserialize("<color:#fc5454>Вы не можете принять приглашение от игрока с таким же IP-адресом!</color:#fc5454>"))
+            inviter.sendMessage(mm.deserialize("<color:#fc5454>Игрок $referralName имеет такой же IP-адрес, как и вы!</color:#fc5454>"))
             referralManager.removePendingInvite(referral.uniqueId)
             return
         }
 
         // Check if already a referral
         if (referralManager.isReferral(referral.uniqueId)) {
-            referral.sendMessage("§cВы уже являетесь рефералом!")
+            referral.sendMessage(mm.deserialize("<color:#fc5454>Вы уже являетесь рефералом!</color:#fc5454>"))
             referralManager.removePendingInvite(referral.uniqueId)
             return
         }
@@ -140,8 +142,8 @@ class ReferralListener(
         val currentPlaytime = referral.getStatistic(org.bukkit.Statistic.PLAY_ONE_MINUTE).toLong()
         referralManager.startReferralTracking(referral.uniqueId, currentPlaytime)
 
-        referral.sendMessage("§aВы приняли приглашение от $inviterName!")
-        inviter.sendMessage("§aИгрок $referralName принял ваше приглашение!")
+        referral.sendMessage(mm.deserialize("<green>Вы приняли приглашение от <yellow>$inviterName</yellow>!</green>"))
+        inviter.sendMessage(mm.deserialize("<green>Игрок <yellow>$referralName</yellow> принял ваше приглашение!</green>"))
 
         plugin.logger.info("Player $referralName accepted referral from $inviterName")
     }
@@ -160,10 +162,10 @@ class ReferralListener(
             }
         }
 
-        referral.sendMessage("§cВы отклонили приглашение от $inviterName")
+        referral.sendMessage(mm.deserialize("<color:#fc5454>Вы отклонили приглашение от $inviterName</color:#fc5454>"))
 
         if (inviter != null) {
-            inviter.sendMessage("§cИгрок $referralName отклонил ваше приглашение")
+            inviter.sendMessage(mm.deserialize("<color:#fc5454>Игрок $referralName отклонил ваше приглашение</color:#fc5454>"))
         }
 
         plugin.logger.info("Player $referralName declined referral from $inviterName")
