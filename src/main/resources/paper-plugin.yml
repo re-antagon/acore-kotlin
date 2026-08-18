@@ -41,7 +41,6 @@ permissions:
       - acore.link
       - acore.admin
       - acore.fairplay.bypass
-      - acore.streak.admin
   acore.showinfo:
     description: Permission for showinfo command
     default: true
@@ -50,9 +49,6 @@ permissions:
     default: true
   acore.admin:
     description: Permission to reload the plugin and manage acore
-    default: op
-  acore.streak.admin:
-    description: Permission for streak admin commands
     default: op
   acore.fairplay.bypass:
     description: Permission to bypass Xaero's Minimap fairplay mode enforcement

@@ -18,13 +18,9 @@ permissions:
   acore.link:
     description: Permission for link command
     default: true
-  acore.streak.admin:
-    description: Permission for streak admin commands
-    default: op
   permission.admin:
     description: Permission for admin commands
     default: op
     children:
       - acore.showinfo
       - acore.link
-      - acore.streak.admin

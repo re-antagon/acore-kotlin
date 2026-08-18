@@ -6,7 +6,6 @@ import org.antagon.acore.database.DatabaseManager
 import org.antagon.acore.fairplay.XaeroFairPlayManager
 import org.antagon.acore.module.AcoreModule
 import org.antagon.acore.streak.StreakManager
-import org.antagon.acore.streak.papi.StreakPlaceholderExpansion
 import org.antagon.acore.streak.storage.StreakDao
 import org.antagon.acore.util.BlockInteractionTracker
 import org.antagon.acore.util.DependencyHandler
@@ -63,12 +62,6 @@ class Acore : JavaPlugin() {
         val streakDao = StreakDao(databaseManager)
         streakManager = StreakManager(this, streakDao, configManager)
 
-        // Register PlaceholderAPI expansion if available
-        if (DependencyHandler.isPluginEnabled("PlaceholderAPI")) {
-            StreakPlaceholderExpansion(this, streakManager).register()
-            logger.info("PlaceholderAPI expansion for Acore registered successfully.")
-        }
-
         // Initialize PacketEvents / XaeroFairPlayManager
         xaeroFairPlayManager.init()
 
@@ -124,12 +117,8 @@ class Acore : JavaPlugin() {
 
     override fun onDisable() {
         AcoreModule.disableAll(this)
-        if (::streakManager.isInitialized) {
-            streakManager.shutdown()
-        }
-        if (::databaseManager.isInitialized) {
-            databaseManager.close()
-        }
+        streakManager.shutdown()
+        databaseManager.close()
         xaeroFairPlayManager.terminate()
         logger.info("Acore plugin has been disabled")
     }

@@ -140,7 +140,7 @@ class AcoreCommand(
                     )
                     .then(
                         Commands.literal("streak")
-                            .requires { source -> source.sender.hasPermission("acore.streak.admin") }
+                            .requires { source -> source.sender.hasPermission("acore.admin") }
                             .then(
                                 Commands.literal("get")
                                     .then(
@@ -149,19 +149,20 @@ class AcoreCommand(
                                                 val sender = ctx.source.sender
                                                 val resolver = ctx.getArgument("player", PlayerSelectorArgumentResolver::class.java)
                                                 val resolved = resolver.resolve(ctx.source)
+                                                val mm = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage()
                                                 if (resolved.isEmpty()) {
-                                                    sender.sendMessage("§cИгрок не найден!")
+                                                    sender.sendMessage(mm.deserialize("<color:#fc5454>Игрок не найден!</color:#fc5454>"))
                                                     return@executes 1
                                                 }
                                                 val target = resolved.first()
                                                 val data = streakManager.getCachedData(target.uniqueId) ?: streakManager.loadOrInit(target.uniqueId)
-                                                sender.sendMessage("§6=== Статистика стрика: §e${target.name} §6===")
-                                                sender.sendMessage("§7Текущий стрик: §a${data.currentStreak} дн.")
-                                                sender.sendMessage("§7Рекордный стрик: §a${data.highestStreak} дн.")
-                                                sender.sendMessage("§7Всего дней входа: §a${data.totalLogins}")
-                                                sender.sendMessage("§7Заморозок: §b${data.streakFreezes}")
-                                                sender.sendMessage("§7Последний вход: §e${data.lastLoginDate ?: "Никогда"}")
-                                                sender.sendMessage("§7До сброса суток: §e${streakManager.getTimeUntilReset()}")
+                                                sender.sendMessage(mm.deserialize("<gold>=== Статистика стрика: <yellow>${target.name}</yellow> ===</gold>"))
+                                                sender.sendMessage(mm.deserialize("<gray>Текущий стрик: <green>${data.currentStreak}</green> дн.</gray>"))
+                                                sender.sendMessage(mm.deserialize("<gray>Рекордный стрик: <green>${data.highestStreak}</green> дн.</gray>"))
+                                                sender.sendMessage(mm.deserialize("<gray>Всего дней входа: <green>${data.totalLogins}</green></gray>"))
+                                                sender.sendMessage(mm.deserialize("<gray>Заморозок: <aqua>${data.streakFreezes}</aqua></gray>"))
+                                                sender.sendMessage(mm.deserialize("<gray>Последний вход: <yellow>${data.lastLoginDate ?: "Никогда"}</yellow></gray>"))
+                                                sender.sendMessage(mm.deserialize("<gray>До сброса суток: <yellow>${streakManager.getTimeUntilReset()}</yellow></gray>"))
                                                 1
                                             }
                                     )
@@ -176,14 +177,15 @@ class AcoreCommand(
                                                         val sender = ctx.source.sender
                                                         val resolver = ctx.getArgument("player", PlayerSelectorArgumentResolver::class.java)
                                                         val resolved = resolver.resolve(ctx.source)
+                                                        val mm = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage()
                                                         if (resolved.isEmpty()) {
-                                                            sender.sendMessage("§cИгрок не найден!")
+                                                            sender.sendMessage(mm.deserialize("<color:#fc5454>Игрок не найден!</color:#fc5454>"))
                                                             return@executes 1
                                                         }
                                                         val target = resolved.first()
                                                         val amount = IntegerArgumentType.getInteger(ctx, "amount")
                                                         streakManager.setStreak(target.uniqueId, amount)
-                                                        sender.sendMessage("§aСтрик игрока ${target.name} успешно установлен на $amount дн.")
+                                                        sender.sendMessage(mm.deserialize("<green>Стрик игрока <yellow>${target.name}</yellow> успешно установлен на <gold>$amount</gold> дн.</green>"))
                                                         1
                                                     }
                                             )
@@ -199,14 +201,15 @@ class AcoreCommand(
                                                         val sender = ctx.source.sender
                                                         val resolver = ctx.getArgument("player", PlayerSelectorArgumentResolver::class.java)
                                                         val resolved = resolver.resolve(ctx.source)
+                                                        val mm = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage()
                                                         if (resolved.isEmpty()) {
-                                                            sender.sendMessage("§cИгрок не найден!")
+                                                            sender.sendMessage(mm.deserialize("<color:#fc5454>Игрок не найден!</color:#fc5454>"))
                                                             return@executes 1
                                                         }
                                                         val target = resolved.first()
                                                         val amount = IntegerArgumentType.getInteger(ctx, "amount")
                                                         val data = streakManager.addFreezes(target.uniqueId, amount)
-                                                        sender.sendMessage("§aЗаморозки игрока ${target.name} изменены на $amount. Новый баланс: ${data.streakFreezes}")
+                                                        sender.sendMessage(mm.deserialize("<green>Заморозки игрока <yellow>${target.name}</yellow> изменены на <gold>$amount</gold>. Новый баланс: <aqua>${data.streakFreezes}</aqua></green>"))
                                                         1
                                                     }
                                             )
@@ -220,13 +223,14 @@ class AcoreCommand(
                                                 val sender = ctx.source.sender
                                                 val resolver = ctx.getArgument("player", PlayerSelectorArgumentResolver::class.java)
                                                 val resolved = resolver.resolve(ctx.source)
+                                                val mm = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage()
                                                 if (resolved.isEmpty()) {
-                                                    sender.sendMessage("§cИгрок не найден!")
+                                                    sender.sendMessage(mm.deserialize("<color:#fc5454>Игрок не найден!</color:#fc5454>"))
                                                     return@executes 1
                                                 }
                                                 val target = resolved.first()
                                                 streakManager.resetStreak(target.uniqueId)
-                                                sender.sendMessage("§aСтрик игрока ${target.name} сброшен.")
+                                                sender.sendMessage(mm.deserialize("<green>Стрик игрока <yellow>${target.name}</yellow> сброшен.</green>"))
                                                 1
                                             }
                                     )
