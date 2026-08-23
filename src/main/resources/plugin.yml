@@ -21,6 +21,8 @@ permissions:
       - acore.link
       - acore.visualize
       - acore.fairplay.bypass
+      - acore.physicsgun.use
+      - acore.physicsgun.immune
   acore.admin:
     description: Main permission to administer Acore
     default: op
@@ -35,4 +37,10 @@ permissions:
     default: op
   acore.fairplay.bypass:
     description: Permission to bypass Xaero's Minimap fairplay mode enforcement
+    default: op
+  acore.physicsgun.use:
+    description: Allows using the Physics Gun item
+    default: op
+  acore.physicsgun.immune:
+    description: Cannot be grabbed by the Physics Gun
     default: op

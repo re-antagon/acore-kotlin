@@ -17,6 +17,7 @@ import org.antagon.acore.listener.StreakManager
 import org.bukkit.entity.Player
 
 import com.mojang.brigadier.arguments.IntegerArgumentType
+import org.antagon.acore.listener.PhysicsGunModule
 import org.antagon.acore.util.DependencyHandler
 
 class AcoreCommand(
@@ -233,6 +234,38 @@ class AcoreCommand(
                                             }
                                     )
                             )
+                    )
+                    .then(
+                        Commands.literal("pgun")
+                            .requires { source -> source.sender.hasPermission("acore.physicsgun.use") }
+                            .then(
+                                Commands.literal("give")
+                                    .then(
+                                        Commands.argument("player", ArgumentTypes.player())
+                                            .executes { ctx ->
+                                                val sender = ctx.source.sender
+                                                val resolver = ctx.getArgument("player", PlayerSelectorArgumentResolver::class.java)
+                                                val target = resolver.resolve(ctx.source).firstOrNull()
+                                                if (target == null) {
+                                                    plugin.localizationManager.send(sender, "physicsgun-player-not-found")
+                                                    return@executes 1
+                                                }
+                                                val module = PhysicsGunModule.current
+                                                if (module == null) {
+                                                    plugin.localizationManager.send(sender, "physicsgun-disabled")
+                                                    return@executes 1
+                                                }
+                                                val leftover = target.inventory.addItem(module.gunItemService.createGun())
+                                                leftover.values.forEach { target.world.dropItemNaturally(target.location, it) }
+                                                plugin.localizationManager.send(sender, "physicsgun-give-success", mapOf("player" to target.name))
+                                                1
+                                            }
+                                    )
+                            )
+                            .executes { ctx ->
+                                plugin.localizationManager.send(ctx.source.sender, "physicsgun-usage")
+                                1
+                            }
                     )
                     .build(),
                 "Acore main command",

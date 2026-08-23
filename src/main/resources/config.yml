@@ -312,3 +312,54 @@ streak:
   reset-hour: 0
 
 
+# Physics Gun module - grab and move players with a special item
+# Movement is packet-only via PacketEvents (fake vehicle), no real entities are spawned
+physicsGun:
+  enabled: true
+  gun:
+    # Material of the gun item (vanilla items of the same material do NOT work:
+    # the gun is identified by a PDC marker only)
+    material: BLAZE_ROD
+    display-name: "&bPhysics Gun"
+    lore:
+      - "&7ПКМ по игроку - схватить"
+      - "&7Колесо мыши - дистанция"
+      - "&7ЛКМ - бросить"
+    custom-model-data: 1001
+  grab:
+    # Maximum distance (blocks) at which a grab can be initiated
+    max-grab-distance: 30.0
+    # Initial hold distance after a successful grab
+    default-distance: 4.0
+    # Bounds for the mouse-wheel distance adjustment
+    min-distance: 1.5
+    max-distance: 15.0
+    distance-step: 0.5
+    # Exponential smoothing factor for the hold point (0..1, higher = snappier)
+    smoothing-factor: 0.35
+    # Throw impulse multiplier (LMB)
+    throw-power: 2.5
+    allow-creative-target: false
+    require-line-of-sight: true
+    auto-release-on-world-change: true
+    # Release if holder and held end up further than max-grab-distance * this
+    auto-release-distance-multiplier: 1.5
+    # Keep the grab active when the HELD player relogs (re-captured on rejoin)
+    persistent-held: true
+    # Auto-release if a persisted held player stays offline longer (seconds, 0 = unlimited)
+    persistent-max-seconds: 300
+  visibility:
+    # Radius (blocks) in which clients can see the fake vehicle entity
+    radius: 64
+  effects:
+    # Sound ids as on the client (custom datapack/resource-pack ids work too)
+    sound-grab: block.beacon.activate
+    sound-release: block.beacon.deactivate
+    particle-enabled: true
+    particle-type: END_ROD
+    particle-interval-ticks: 4
+  messages:
+    no-permission: "&cУ вас нет прав на использование этой пушки."
+    target-immune: "&cЭтого игрока нельзя схватить."
+    grabbed-self-notice: "&eВас держат физической пушкой!"
+    holder-distance-notice: "&7Дистанция: {distance}"

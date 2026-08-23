@@ -25,3 +25,9 @@ loading-error: "упс! Что-то пошло не так!"
 enable-success: "<#ffc26f>Плагин Acore <green>успешно включен!</green>"
 disable-success: "<#ffc26f>Плагин Acore <red>выключен.</red>"
 fire-burning-prevented: "<#ffc26f>Горение блока предотвращено около: <#ffc26f>{block.location}"
+
+# Physics Gun module
+physicsgun-usage: "<#ffc26f>Использование: /acore pgun give <игрок>"
+physicsgun-player-not-found: "<color:#fc5454>Игрок не найден.</color:#fc5454>"
+physicsgun-disabled: "<color:#fc5454>Модуль Physics Gun отключен (проверьте config и наличие PacketEvents).</color:#fc5454>"
+physicsgun-give-success: "<#ffc26f>Physics Gun выдан игроку <green>{player}</green>"
