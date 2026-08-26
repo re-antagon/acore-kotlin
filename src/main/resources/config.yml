@@ -1,5 +1,5 @@
 # You don't want to touch this
-config-version: 3
+config-version: 4
 
 # Select language from "languages" folder, you can add your by creating new file
 language: ru-RU
@@ -363,3 +363,17 @@ physicsGun:
     target-immune: "&cЭтого игрока нельзя схватить."
     grabbed-self-notice: "&eВас держат физической пушкой!"
     holder-distance-notice: "&7Дистанция: {distance}"
+
+# Leash Players module - tie players with vanilla leads
+leashPlayers:
+  enabled: true
+  leash:
+    max-distance: 10.0
+    leash-length: 5.0
+    pull-strength-multiplier: 0.15
+    max-pull-velocity: 0.5
+    leash-item-range: 8.0
+    fake-entity-type: BAT
+    update-interval-ticks: 1
+    visual-broadcast-radius: 48
+    return-lead-on-target-quit: true

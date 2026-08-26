@@ -22,7 +22,7 @@ class ConfigManager private constructor(
     }
 
     companion object {
-        private const val REQUIRED_VERSION = 3
+        private const val REQUIRED_VERSION = 4
         private var instance: ConfigManager? = null
 
         fun initialize(dataFolder: File, pluginLogger: Logger): ConfigManager {
