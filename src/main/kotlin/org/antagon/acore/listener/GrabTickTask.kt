@@ -42,14 +42,60 @@ class GrabTickTask(
             return
         }
 
-        // persistent capture: the held player is offline; the grab is frozen
-        // until they rejoin (or the patience timeout runs out)
+        if (holder.world != session.world) {
+            grabManager.release(session.holderId)
+            return
+        }
+
+        // permission revoked mid-hold
+        if (!holder.hasPermission("acore.physicsgun.use")) {
+            grabManager.release(session.holderId)
+            return
+        }
+
         val offlineSince = session.heldOfflineSince
         if (offlineSince != null) {
             if (grabManager.persistentMaxMillis > 0 &&
                 System.currentTimeMillis() - offlineSince > grabManager.persistentMaxMillis
             ) {
                 grabManager.release(session.holderId)
+                return
+            }
+
+            // check break distance for offline ghost
+            val breakDistance = grabManager.maxGrabDistance * grabManager.autoReleaseDistanceMultiplier
+            if (holder.location.distanceSquared(session.currentPos.toLocation(holder.world)) > breakDistance * breakDistance) {
+                grabManager.release(session.holderId)
+                return
+            }
+
+            // move hold point
+            val eye = holder.eyeLocation
+            val desired = eye.toVector().add(eye.direction.clone().multiply(session.distance))
+            session.currentPos.add(desired.subtract(session.currentPos).multiply(grabManager.smoothingFactor))
+            session.lastTickTime = System.currentTimeMillis()
+
+            val ghostId = session.ghostEntityId ?: 0
+            module.fakeVehicleService.tick(session, ghostId)
+
+            if (tickCounter % PASSENGERS_RESYNC_INTERVAL == 0L) {
+                module.fakeVehicleService.rebroadcastPassengers(session, ghostId)
+            }
+
+            // Pulse ghost outline every 10 ticks (0.5s)
+            if (tickCounter % 10L == 0L) {
+                session.glowingPulseWhite = !session.glowingPulseWhite
+                module.fakeVehicleService.pulseGhostOutline(session)
+            }
+
+            // action bar feedback for holder
+            if (tickCounter % ACTIONBAR_INTERVAL == 0L) {
+                grabManager.sendActionBar(holder, "physicsgun-holder-distance-notice", mapOf("distance" to String.format("%.1f", session.distance)))
+            }
+
+            // beam particles
+            if (particleEnabled && tickCounter % particleInterval == 0L) {
+                spawnBeam(eye.toVector(), session.currentPos, session)
             }
             return
         }
@@ -59,17 +105,12 @@ class GrabTickTask(
             grabManager.release(session.holderId)
             return
         }
-        if (holder.world != held.world || holder.world != session.world) {
+        if (holder.world != held.world) {
             grabManager.release(session.holderId)
             return
         }
-        // permission was revoked mid-hold - release immediately
-        if (!holder.hasPermission("acore.physicsgun.use")) {
-            grabManager.release(session.holderId)
-            return
-        }
-        // holder teleported away through another plugin
-        // NB: measured against the VEHICLE position, not the server-frozen real entity
+
+        // holder teleported away
         val breakDistance = grabManager.maxGrabDistance * grabManager.autoReleaseDistanceMultiplier
         if (holder.location.distanceSquared(session.currentPos.toLocation(holder.world)) > breakDistance * breakDistance) {
             grabManager.release(session.holderId)
@@ -99,8 +140,8 @@ class GrabTickTask(
 
         // action bar feedback
         if (tickCounter % ACTIONBAR_INTERVAL == 0L) {
-            grabManager.sendActionBar(holder, "holder-distance-notice", mapOf("distance" to String.format("%.1f", session.distance)))
-            grabManager.sendActionBar(held, "grabbed-self-notice")
+            grabManager.sendActionBar(holder, "physicsgun-holder-distance-notice", mapOf("distance" to String.format("%.1f", session.distance)))
+            grabManager.sendActionBar(held, "physicsgun-grabbed-self-notice")
         }
 
         // beam particles

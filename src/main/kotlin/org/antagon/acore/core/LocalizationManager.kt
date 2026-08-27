@@ -74,7 +74,7 @@ class LocalizationManager(
             languageFolder.mkdirs()
         }
 
-        // Save default bundles if they do not exist
+        // Save or update default bundles
         for (bundle in listOf("ru-RU.yml", "en-US.yml")) {
             val file = File(languageFolder, bundle)
             if (!file.exists()) {
@@ -82,6 +82,28 @@ class LocalizationManager(
                     plugin.saveResource("language/$bundle", false)
                 } catch (e: Exception) {
                     plugin.logger.warning("Could not save default language/$bundle: ${e.message}")
+                }
+            } else {
+                // Synchronize missing keys from the embedded default resource into existing files
+                try {
+                    val resourceStream = plugin.getResource("language/$bundle")
+                    if (resourceStream != null) {
+                        val defaultConfig = YamlConfiguration.loadConfiguration(java.io.InputStreamReader(resourceStream, Charsets.UTF_8))
+                        val currentConfig = YamlConfiguration.loadConfiguration(file)
+                        var modified = false
+                        for (key in defaultConfig.getKeys(true)) {
+                            if (!currentConfig.contains(key)) {
+                                currentConfig.set(key, defaultConfig.get(key))
+                                plugin.logger.info("Added missing language key to $bundle: $key = ${defaultConfig.get(key)}")
+                                modified = true
+                            }
+                        }
+                        if (modified) {
+                            currentConfig.save(file)
+                        }
+                    }
+                } catch (e: Exception) {
+                    plugin.logger.warning("Failed to update language file $bundle with missing keys: ${e.message}")
                 }
             }
         }

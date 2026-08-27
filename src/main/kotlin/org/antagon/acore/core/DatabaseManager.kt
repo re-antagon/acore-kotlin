@@ -116,6 +116,37 @@ class DatabaseManager(private val plugin: JavaPlugin) {
                     conn.autoCommit = prevAutoCommit
                 }
             }
+
+            if (currentVersion < 3) {
+                val prevAutoCommit = conn.autoCommit
+                conn.autoCommit = false
+                try {
+                    conn.createStatement().use { stmt ->
+                        stmt.executeUpdate(
+                            """
+                            CREATE TABLE IF NOT EXISTS pending_offline_teleports (
+                                uuid VARCHAR(36) PRIMARY KEY NOT NULL,
+                                world VARCHAR(64) NOT NULL,
+                                x DOUBLE NOT NULL,
+                                y DOUBLE NOT NULL,
+                                z DOUBLE NOT NULL,
+                                yaw FLOAT NOT NULL,
+                                pitch FLOAT NOT NULL,
+                                created_at BIGINT NOT NULL
+                            );
+                            """.trimIndent()
+                        )
+                        stmt.executeUpdate("PRAGMA user_version = 3;")
+                    }
+                    conn.commit()
+                    plugin.logger.info("Applied database migration v3 (pending_offline_teleports table).")
+                } catch (e: Exception) {
+                    conn.rollback()
+                    throw e
+                } finally {
+                    conn.autoCommit = prevAutoCommit
+                }
+            }
         }
     }
 

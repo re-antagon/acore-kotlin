@@ -107,15 +107,10 @@ class LeashPlayersModule(
             return NoopLeashVisualManager()
         }
 
-        val packetEventsPlugin = Bukkit.getPluginManager().getPlugin("PacketEvents")
-            ?: Bukkit.getPluginManager().getPlugin("packetevents")
-        plugin.logger.info("LeashPlayers: PacketEvents version detected: ${packetEventsPlugin?.pluginMeta?.version ?: "unknown"}")
-
-        return try {
-            PacketEventsLeashVisualManager(plugin, configManager)
-        } catch (t: Throwable) {
-            plugin.logger.warning("LeashPlayers: failed to initialize PacketEvents visuals: ${t.message}")
-            NoopLeashVisualManager()
+        var manager: LeashVisualManager = NoopLeashVisualManager()
+        DependencyHandler.executeSafely("PacketEvents", "Leash Visuals") {
+            manager = PacketEventsLeashVisualManager(plugin, configManager)
         }
+        return manager
     }
 }

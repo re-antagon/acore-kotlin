@@ -18,5 +18,12 @@ data class GrabSession(
     @Volatile var lastTickTime: Long,
     val viewers: MutableSet<UUID> = ConcurrentHashMap.newKeySet(),
     // non-null while the held player is offline but kept captured (persistent-held)
-    @Volatile var heldOfflineSince: Long? = null
+    @Volatile var heldOfflineSince: Long? = null,
+    var ghostEntityId: Int? = null,
+    var ghostUuid: UUID? = null,
+    var textDisplayEntityId: Int? = null,
+    var cachedTextures: Pair<String, String>? = null,
+    var cachedName: String = "",
+    var glowingPulseWhite: Boolean = true
 )
+

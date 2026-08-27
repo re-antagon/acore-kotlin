@@ -4,6 +4,7 @@ import com.github.retrooper.packetevents.PacketEvents
 import org.antagon.acore.Acore
 import org.antagon.acore.core.AcoreModule
 import org.antagon.acore.core.ConfigManager
+import org.antagon.acore.core.DatabaseManager
 import org.antagon.acore.util.DependencyHandler
 import org.bukkit.FluidCollisionMode
 import org.bukkit.Bukkit
@@ -27,7 +28,85 @@ import org.bukkit.event.player.PlayerTeleportEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.plugin.Plugin
 import org.bukkit.scheduler.BukkitTask
+import java.util.UUID
 import java.util.logging.Logger
+
+data class OfflineTeleportRecord(
+    val uuid: UUID,
+    val world: String,
+    val x: Double,
+    val y: Double,
+    val z: Double,
+    val yaw: Float,
+    val pitch: Float,
+    val createdAt: Long = System.currentTimeMillis()
+)
+
+class OfflineTeleportDao(private val dbManager: DatabaseManager) {
+    fun get(uuid: UUID): OfflineTeleportRecord? {
+        val query = "SELECT world, x, y, z, yaw, pitch, created_at FROM pending_offline_teleports WHERE uuid = ?;"
+        return dbManager.execute { conn ->
+            conn.prepareStatement(query).use { stmt ->
+                stmt.setString(1, uuid.toString())
+                stmt.executeQuery().use { rs ->
+                    if (rs.next()) {
+                        OfflineTeleportRecord(
+                            uuid = uuid,
+                            world = rs.getString("world"),
+                            x = rs.getDouble("x"),
+                            y = rs.getDouble("y"),
+                            z = rs.getDouble("z"),
+                            yaw = rs.getFloat("yaw"),
+                            pitch = rs.getFloat("pitch"),
+                            createdAt = rs.getLong("created_at")
+                        )
+                    } else {
+                        null
+                    }
+                }
+            }
+        }
+    }
+
+    fun save(record: OfflineTeleportRecord) {
+        val query = """
+            INSERT INTO pending_offline_teleports (uuid, world, x, y, z, yaw, pitch, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(uuid) DO UPDATE SET
+                world = excluded.world,
+                x = excluded.x,
+                y = excluded.y,
+                z = excluded.z,
+                yaw = excluded.yaw,
+                pitch = excluded.pitch,
+                created_at = excluded.created_at;
+        """.trimIndent()
+
+        dbManager.execute { conn ->
+            conn.prepareStatement(query).use { stmt ->
+                stmt.setString(1, record.uuid.toString())
+                stmt.setString(2, record.world)
+                stmt.setDouble(3, record.x)
+                stmt.setDouble(4, record.y)
+                stmt.setDouble(5, record.z)
+                stmt.setFloat(6, record.yaw)
+                stmt.setFloat(7, record.pitch)
+                stmt.setLong(8, record.createdAt)
+                stmt.executeUpdate()
+            }
+        }
+    }
+
+    fun delete(uuid: UUID) {
+        val query = "DELETE FROM pending_offline_teleports WHERE uuid = ?;"
+        dbManager.execute { conn ->
+            conn.prepareStatement(query).use { stmt ->
+                stmt.setString(1, uuid.toString())
+                stmt.executeUpdate()
+            }
+        }
+    }
+}
 
 // movement is packet-only via a fake PacketEvents vehicle
 class PhysicsGunModule(
@@ -44,6 +123,7 @@ class PhysicsGunModule(
 
     private val logger = Logger.getLogger(PhysicsGunModule::class.java.name)
 
+    val offlineTeleportDao = OfflineTeleportDao(Acore.instance.databaseManager)
     val gunItemService = GunItemService(plugin, configManager)
     val fakeVehicleService = FakeVehicleService(plugin)
     val grabManager = GrabManager(this)
@@ -67,9 +147,11 @@ class PhysicsGunModule(
     override fun enable() {
         current = this
         registerEvents(plugin)
-        val listener = PhysicsGunPacketListener(this)
-        packetListener = listener
-        PacketEvents.getAPI().eventManager.registerListener(listener)
+        DependencyHandler.executeSafely("PacketEvents", "PhysicsGun Packet Listener") {
+            val listener = PhysicsGunPacketListener(this)
+            packetListener = listener
+            PacketEvents.getAPI().eventManager.registerListener(listener)
+        }
         tickTask = GrabTickTask(this).runTaskTimer(plugin, 1L, 1L)
     }
 
@@ -79,8 +161,10 @@ class PhysicsGunModule(
             tickTask?.cancel()
             tickTask = null
             val listener = packetListener
-            if (listener != null && DependencyHandler.isPluginEnabled("PacketEvents")) {
-                PacketEvents.getAPI().eventManager.unregisterListener(listener)
+            if (listener != null) {
+                DependencyHandler.executeSafely("PacketEvents", "Unregister PhysicsGun Packet Listener") {
+                    PacketEvents.getAPI().eventManager.unregisterListener(listener)
+                }
             }
             packetListener = null
         } catch (e: Exception) {
@@ -178,16 +262,39 @@ class PhysicsGunModule(
         grabManager.handleQuit(event.player.uniqueId)
     }
 
-    // relogging held players are re-captured (persistent-held). Packets are
-    // sent with a small delay so the client has finished world init first
+    // relogging held players are re-captured (persistent-held). Packets and
+    // teleports are sent with a small delay so the client has finished world init first
     @EventHandler(priority = EventPriority.MONITOR)
     fun onJoin(event: PlayerJoinEvent) {
-        Bukkit.getScheduler().runTaskLater(plugin, Runnable {
-            val player = event.player
-            if (player.isOnline) {
-                grabManager.tryReattach(player)
-            }
-        }, 2L)
+        val player = event.player
+        val pending = offlineTeleportDao.get(player.uniqueId)
+        if (pending != null) {
+            offlineTeleportDao.delete(player.uniqueId)
+            Bukkit.getScheduler().runTaskLater(plugin, Runnable {
+                if (player.isOnline) {
+                    val targetWorld = Bukkit.getWorld(pending.world) ?: player.world
+                    val loc = org.bukkit.Location(targetWorld, pending.x, pending.y, pending.z, pending.yaw, pending.pitch)
+                    grabManager.markInternalTeleport(player.uniqueId)
+                    try {
+                        player.teleport(loc)
+                    } finally {
+                        grabManager.unmarkInternalTeleport(player.uniqueId)
+                    }
+                    player.setGravity(true)
+                    player.fallDistance = 0f
+                }
+            }, 2L)
+        } else {
+            Bukkit.getScheduler().runTaskLater(plugin, Runnable {
+                if (player.isOnline) {
+                    if (!grabManager.tryReattach(player)) {
+                        if (!player.hasGravity()) {
+                            player.setGravity(true)
+                        }
+                    }
+                }
+            }, 2L)
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

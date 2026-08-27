@@ -20,8 +20,10 @@ class PhysicsGunPacketListener(
 ) : PacketListenerAbstract() {
 
     override fun onPacketReceive(event: PacketReceiveEvent) {
-        val uuid = event.user.uuid
         val grabManager = module.grabManager
+        if (!grabManager.hasActiveSessions) return
+
+        val uuid = event.user.uuid
 
         when (event.packetType) {
             PacketType.Play.Client.ENTITY_ACTION -> {

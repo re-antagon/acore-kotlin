@@ -1,6 +1,6 @@
 package org.antagon.acore.listener
 
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+import net.kyori.adventure.text.minimessage.MiniMessage
 import org.antagon.acore.core.ConfigManager
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -23,6 +23,7 @@ class GunItemService(
     }
 
     private val logger = Logger.getLogger(GunItemService::class.java.name)
+    private val miniMessage = MiniMessage.miniMessage()
 
     fun isGun(item: ItemStack?): Boolean {
         if (item == null || item.type.isAir) return false
@@ -41,14 +42,13 @@ class GunItemService(
 
         val item = ItemStack(material)
         val meta = item.itemMeta
-        val legacy = LegacyComponentSerializer.legacyAmpersand()
 
         meta.persistentDataContainer.set(MARKER_KEY, PersistentDataType.BYTE, 1.toByte())
-        meta.displayName(legacy.deserialize(configManager.getString("physicsGun.gun.display-name", "&bPhysics Gun")))
+        meta.displayName(miniMessage.deserialize(configManager.getString("physicsGun.gun.display-name", "<aqua><bold>Physics Gun</bold></aqua>")))
 
         val loreLines = configManager.getStringList("physicsGun.gun.lore")
         if (loreLines.isNotEmpty()) {
-            meta.lore(loreLines.map { legacy.deserialize(it) })
+            meta.lore(loreLines.map { miniMessage.deserialize(it) })
         }
 
         val customModelData = configManager.getInt("physicsGun.gun.custom-model-data", 0)

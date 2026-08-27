@@ -1,6 +1,6 @@
 package org.antagon.acore.listener
 
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+import org.antagon.acore.Acore
 import org.antagon.acore.core.AcoreModule
 import org.antagon.acore.core.ConfigManager
 import org.bukkit.Bukkit
@@ -97,7 +97,7 @@ class GrabManager(
         if (isHolder(target.uniqueId)) return false       // mutual grab protection
         if (target.world != holder.world) return false
         if (target.hasPermission("acore.physicsgun.immune")) {
-            sendMessage(holder, "target-immune")
+            sendMessage(holder, "physicsgun-target-immune")
             return false
         }
         if (!allowCreativeTarget && (target.gameMode == GameMode.CREATIVE || target.gameMode == GameMode.SPECTATOR)) {
@@ -108,6 +108,11 @@ class GrabManager(
         }
         if (requireLineOfSight && !hasLineOfSight(holder, target)) {
             return false
+        }
+
+        // Dismount target from vehicle if mounted
+        if (target.isInsideVehicle) {
+            target.leaveVehicle()
         }
 
         val fakeEntityId = module.fakeVehicleService.generateEntityId()
@@ -157,9 +162,7 @@ class GrabManager(
 
         val held = Bukkit.getPlayer(session.heldId)
         if (held != null && held.isOnline) {
-            // the real entity was frozen server-side
-            // during the grab, so move it to where the player visibly was
-            // before restoring physics
+            // the real entity was frozen server-side during the grab, so move it to where the player visibly was
             markInternalTeleport(session.heldId)
             try {
                 held.teleport(session.currentPos.toLocation(session.world, held.location.yaw, held.location.pitch))
@@ -172,6 +175,19 @@ class GrabManager(
                 val direction = Bukkit.getPlayer(session.holderId)?.eyeLocation?.direction ?: Vector(0, 0, 0)
                 held.velocity = direction.clone().multiply(throwPower)
             }
+        } else {
+            // Target is offline: persist their latest position to SQLite so they spawn here upon reconnect
+            module.offlineTeleportDao.save(
+                OfflineTeleportRecord(
+                    uuid = session.heldId,
+                    world = session.world.name,
+                    x = session.currentPos.x,
+                    y = session.currentPos.y,
+                    z = session.currentPos.z,
+                    yaw = 0f,
+                    pitch = 0f
+                )
+            )
         }
         playConfiguredSound(soundRelease, session.world, session.currentPos)
     }
@@ -185,8 +201,7 @@ class GrabManager(
         getByHeld(uuid)?.let { release(it.holderId) }
     }
 
-    // the drop of a HOLDER always ends the grab; a quitting HELD player stays captured while offline
-    // (and is re-attached on rejoin) if physicsGun.grab.persistent-held is on
+    // the drop of a HOLDER always ends the grab; a quitting HELD player spawns a ghost
     fun handleQuit(uuid: UUID) {
         if (isHolder(uuid)) {
             release(uuid)
@@ -194,17 +209,27 @@ class GrabManager(
         }
         val session = getByHeld(uuid) ?: return
         if (persistentHeld) {
+            val player = Bukkit.getPlayer(uuid)
             session.heldOfflineSince = System.currentTimeMillis()
-            // no ghost vehicle floating around while they are away
+
+            // Snapshot skin and profile
+            val profile = player?.playerProfile
+            val textureProp = profile?.properties?.firstOrNull { it.name == "textures" }
+            session.cachedTextures = if (textureProp != null) Pair(textureProp.value, textureProp.signature ?: "") else null
+            session.cachedName = player?.name ?: ""
+            session.ghostEntityId = module.fakeVehicleService.generateEntityId()
+            session.ghostUuid = UUID.randomUUID()
+            session.textDisplayEntityId = module.fakeVehicleService.generateEntityId()
+
+            // Destroy old vehicle for viewers and spawn the ghost vehicle
             module.fakeVehicleService.destroyForAll(session)
+            module.fakeVehicleService.syncViewers(session, session.ghostEntityId!!)
         } else {
             release(session.holderId)
         }
     }
 
-    // re-captures a relogging held player. Called from the join handler with
-    // a short delay so the client has finished world init before it gets the
-    // vehicle packets
+    // re-captures a relogging held player
     fun tryReattach(player: Player): Boolean {
         val session = getByHeld(player.uniqueId) ?: return false
         if (session.heldOfflineSince == null) return false
@@ -213,7 +238,22 @@ class GrabManager(
             release(session.holderId)
             return false
         }
+
+        // Clean up offline ghost packets
+        module.fakeVehicleService.destroyForAll(session)
+        session.ghostEntityId = null
+        session.ghostUuid = null
+        session.textDisplayEntityId = null
         session.heldOfflineSince = null
+
+        // Teleport returning player to current ghost position
+        markInternalTeleport(player.uniqueId)
+        try {
+            player.teleport(session.currentPos.toLocation(session.world, player.location.yaw, player.location.pitch))
+        } finally {
+            unmarkInternalTeleport(player.uniqueId)
+        }
+
         player.setGravity(false)
         player.fallDistance = 0f
         module.fakeVehicleService.syncViewers(session, player.entityId)
@@ -231,20 +271,13 @@ class GrabManager(
         lastActionTick.clear()
     }
 
-    private fun legacyMessage(key: String, placeholders: Map<String, String> = emptyMap()) =
-        LegacyComponentSerializer.legacyAmpersand().deserialize(
-            placeholders.entries.fold(
-                configManager.getString("physicsGun.messages.$key", "")
-            ) { acc, (k, v) -> acc.replace("{$k}", v) })
-
     fun sendMessage(player: Player, key: String, placeholders: Map<String, String> = emptyMap()) {
-        if (configManager.getString("physicsGun.messages.$key", "").isBlank()) return
-        player.sendMessage(legacyMessage(key, placeholders))
+        Acore.instance.localizationManager.send(player, key, placeholders)
     }
 
     fun sendActionBar(player: Player, key: String, placeholders: Map<String, String> = emptyMap()) {
-        if (configManager.getString("physicsGun.messages.$key", "").isBlank()) return
-        player.sendActionBar(legacyMessage(key, placeholders))
+        val component = Acore.instance.localizationManager.getComponent(key, player, placeholders)
+        player.sendActionBar(component)
     }
 
     private fun playConfiguredSound(soundId: String, world: World, at: Vector) {

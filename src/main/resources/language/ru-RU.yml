@@ -17,6 +17,7 @@ visualize-clear-help: "<gray>Для очистки: /acore visualize clear</gray
 visualize-cleared: "<green>Фантомная визуализация очищена.</green>"
 missing-argument: "<red>Недостаточно аргументов в команде</red>"
 wrong-argument: "<red>Неверный аргумент в команде</red>"
+no-permission: "<color:#fc5454>У вас нет прав!</color:#fc5454>"
 
 # Debug and other console information
 loading-start: "загружается..."
@@ -27,7 +28,11 @@ disable-success: "<#ffc26f>Плагин Acore <red>выключен.</red>"
 fire-burning-prevented: "<#ffc26f>Горение блока предотвращено около: <#ffc26f>{block.location}"
 
 # Physics Gun module
-physicsgun-usage: "<#ffc26f>Использование: /acore pgun give <игрок>"
+physicsgun-usage: "<#c38154>Использование: <#ffc26f>/acore pgun give <игрок>"
 physicsgun-player-not-found: "<color:#fc5454>Игрок не найден.</color:#fc5454>"
 physicsgun-disabled: "<color:#fc5454>Модуль Physics Gun отключен (проверьте config и наличие PacketEvents).</color:#fc5454>"
 physicsgun-give-success: "<#ffc26f>Physics Gun выдан игроку <green>{player}</green>"
+physicsgun-target-immune: "<color:#fc5454>Этого игрока нельзя схватить.</color:#fc5454>"
+physicsgun-grabbed-self-notice: "<yellow>Вас держат физической пушкой!</yellow>"
+physicsgun-holder-distance-notice: "<gray>Дистанция: <aqua>{distance}</aqua></gray>"
+physicsgun-offline-ghost-tag: "<gray>Не в игре</gray>"

@@ -16,6 +16,7 @@ visualize-clear-help: "<gray>To clear: /acore visualize clear</gray>"
 visualize-cleared: "<green>Phantom visualization cleared.</green>"
 missing-argument: "<red>missing argument in provided command</red>"
 wrong-argument: "<red>wrong argument in provided command</red>"
+no-permission: "<color:#fc5454>You do not have permission!</color:#fc5454>"
 
 # Debug and other console information
 loading-start: "is loading.."
@@ -26,10 +27,14 @@ disable-success: "<#ffc26f>Acore plugin has been <red>disabled.</red>"
 fire-burning-prevented: "<#ffc26f>Fire burning has been prevented near block at: <#ffc26f>{block.location}"
 
 # Physics Gun module
-physicsgun-usage: "<#ffc26f>Usage: /acore pgun give <player>"
+physicsgun-usage: "<#c38154>Usage: <#ffc26f>/acore pgun give <player>"
 physicsgun-player-not-found: "<color:#fc5454>Player not found.</color:#fc5454>"
 physicsgun-disabled: "<color:#fc5454>Physics Gun module is disabled (check config and PacketEvents).</color:#fc5454>"
 physicsgun-give-success: "<#ffc26f>Physics Gun given to <green>{player}</green>"
+physicsgun-target-immune: "<color:#fc5454>This player cannot be grabbed.</color:#fc5454>"
+physicsgun-grabbed-self-notice: "<yellow>You are being held by a physics gun!</yellow>"
+physicsgun-holder-distance-notice: "<gray>Distance: <aqua>{distance}</aqua></gray>"
+physicsgun-offline-ghost-tag: "<gray>Offline</gray>"
 
 # Some meme shit
 # You can leave this "" to disable

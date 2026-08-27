@@ -237,7 +237,7 @@ class AcoreCommand(
                     )
                     .then(
                         Commands.literal("pgun")
-                            .requires { source -> source.sender.hasPermission("acore.physicsgun.use") }
+                            .requires { source -> source.sender.hasPermission("acore.admin") }
                             .then(
                                 Commands.literal("give")
                                     .then(

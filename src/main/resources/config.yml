@@ -320,11 +320,11 @@ physicsGun:
     # Material of the gun item (vanilla items of the same material do NOT work:
     # the gun is identified by a PDC marker only)
     material: BLAZE_ROD
-    display-name: "&bPhysics Gun"
+    display-name: "<aqua><bold>Physics Gun</bold></aqua>"
     lore:
-      - "&7ПКМ по игроку - схватить"
-      - "&7Колесо мыши - дистанция"
-      - "&7ЛКМ - бросить"
+      - "<gray>ПКМ по игроку - схватить</gray>"
+      - "<gray>Колесо мыши - дистанция</gray>"
+      - "<gray>ЛКМ - бросить</gray>"
     custom-model-data: 1001
   grab:
     # Maximum distance (blocks) at which a grab can be initiated
@@ -358,11 +358,6 @@ physicsGun:
     particle-enabled: true
     particle-type: END_ROD
     particle-interval-ticks: 4
-  messages:
-    no-permission: "&cУ вас нет прав на использование этой пушки."
-    target-immune: "&cЭтого игрока нельзя схватить."
-    grabbed-self-notice: "&eВас держат физической пушкой!"
-    holder-distance-notice: "&7Дистанция: {distance}"
 
 # Leash Players module - tie players with vanilla leads
 leashPlayers:
@@ -377,3 +372,5 @@ leashPlayers:
     update-interval-ticks: 1
     visual-broadcast-radius: 48
     return-lead-on-target-quit: true
+    require-permission: false
+

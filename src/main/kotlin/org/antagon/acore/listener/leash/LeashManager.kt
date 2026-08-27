@@ -36,6 +36,9 @@ class LeashManager(
     private val leashItemRange: Double
         get() = configManager.getDouble("leashPlayers.leash.leash-item-range", 8.0)
 
+    private val requirePermission: Boolean
+        get() = configManager.getBoolean("leashPlayers.leash.require-permission", false)
+
     fun activeLinks(): List<LeashLink> = linksByTarget.values.toList()
 
     fun isLeashed(playerId: UUID): Boolean = linksByTarget.containsKey(playerId)
@@ -47,6 +50,7 @@ class LeashManager(
     }
 
     fun tryLeash(holder: Player, target: Player): Boolean {
+        if (requirePermission && !holder.hasPermission("acore.leash.use")) return false
         if (holder.uniqueId == target.uniqueId) return false
         if (holder.inventory.itemInMainHand.type != Material.LEAD) return false
         if (target.gameMode == GameMode.CREATIVE || target.gameMode == GameMode.SPECTATOR) return false
