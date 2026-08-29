@@ -41,7 +41,7 @@ interface AcoreModule {
     }
 
     companion object {
-        private val reflections = Reflections("org.antagon.acore.listener")
+        private val reflections = Reflections("org.antagon.acore.feature")
         private val loadedModules = mutableListOf<AcoreModule>()
 
         /**

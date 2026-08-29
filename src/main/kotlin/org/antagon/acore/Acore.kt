@@ -5,10 +5,10 @@ import org.antagon.acore.core.ConfigManager
 import org.antagon.acore.core.DatabaseManager
 import org.antagon.acore.core.LocalizationManager
 import org.antagon.acore.core.AcoreModule
-import org.antagon.acore.listener.ReferralDao
-import org.antagon.acore.listener.ReferralManager
-import org.antagon.acore.listener.StreakDao
-import org.antagon.acore.listener.StreakManager
+import org.antagon.acore.feature.referral.ReferralDao
+import org.antagon.acore.feature.referral.ReferralManager
+import org.antagon.acore.feature.streak.StreakDao
+import org.antagon.acore.feature.streak.StreakManager
 import org.antagon.acore.util.BlockInteractionTracker
 import org.antagon.acore.util.DependencyHandler
 import org.antagon.acore.util.EntityKillTracker

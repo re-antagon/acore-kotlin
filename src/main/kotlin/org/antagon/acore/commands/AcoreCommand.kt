@@ -12,12 +12,12 @@ import net.luckperms.api.LuckPermsProvider
 import net.luckperms.api.node.types.PermissionNode
 import org.antagon.acore.Acore
 import org.antagon.acore.core.ConfigManager
-import org.antagon.acore.listener.ReferralManager
-import org.antagon.acore.listener.StreakManager
+import org.antagon.acore.feature.referral.ReferralManager
+import org.antagon.acore.feature.streak.StreakManager
 import org.bukkit.entity.Player
 
 import com.mojang.brigadier.arguments.IntegerArgumentType
-import org.antagon.acore.listener.PhysicsGunModule
+import org.antagon.acore.feature.physicsgun.PhysicsGunModule
 import org.antagon.acore.util.DependencyHandler
 
 class AcoreCommand(
@@ -130,13 +130,13 @@ class AcoreCommand(
 
                                         val argsStr = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "args")
                                         if (argsStr.equals("clear", ignoreCase = true)) {
-                                            org.antagon.acore.listener.CoreProtectVisualizerListener.SessionManager.stopSession(sender)
+                                            org.antagon.acore.feature.coreprotect.CoreProtectVisualizerListener.SessionManager.stopSession(sender)
                                             plugin.localizationManager.send(sender, "visualize-cleared")
                                             return@executes 1
                                         }
 
-                                        val query = org.antagon.acore.listener.CoreProtectVisualizerListener.Parser.parseArgs(argsStr, configManager)
-                                        org.antagon.acore.listener.CoreProtectVisualizerListener.SessionManager.startSession(sender, query, configManager)
+                                        val query = org.antagon.acore.feature.coreprotect.CoreProtectVisualizerListener.Parser.parseArgs(argsStr, configManager)
+                                        org.antagon.acore.feature.coreprotect.CoreProtectVisualizerListener.SessionManager.startSession(sender, query, configManager)
                                         1
                                     }
                             )
