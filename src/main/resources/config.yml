@@ -67,15 +67,6 @@ minecartSpeed:
     DIRT: 0.35
     GRAVEL: 0.3
     SOUL_SAND: 0.2
-# Speed up / Slow down player speed, triggered on Sprint event and then checks every {tick-frequency} ticks
-betterRun:
-  enabled: true
-  # This value makes speed increase/decrease more smoothly where 0 = instantly, 10 = never
-  smooth-factor: 5
-  # Amount of ticks to wait before next check of player staying on right block
-  tick-frequency: 20
-  block-types:
-    DIRT_PATH: 0.025 # 0.2 default player speed + 0.025 = 112.5% from original speed
 # Convert blocks to another type if lightning hits it (in 1.5 radius which looks like +)
 lightningConversion:
   enabled: true
