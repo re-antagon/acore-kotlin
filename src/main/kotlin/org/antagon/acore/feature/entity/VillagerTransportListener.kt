@@ -180,13 +180,14 @@ class VillagerTransportListener(
                 continue
             }
 
-            if (llama.passengers.isNotEmpty()) continue
-            if (!hasCarpet(llama)) continue
-            if (!isPlayerNearby(llama)) continue
             if (!isChunkLoaded(llama)) {
                 iterator.remove()
                 continue
             }
+
+            if (llama.passengers.isNotEmpty()) continue
+            if (!hasCarpet(llama)) continue
+            if (!isPlayerNearby(llama)) continue
 
             mountNearbyVillager(llama, "llama")
         }
@@ -194,17 +195,18 @@ class VillagerTransportListener(
 
     private fun isChunkLoaded(llama: Llama): Boolean {
         val location = llama.location
-        return location.world.isChunkLoaded(chunkIndexOf(location.blockX), chunkIndexOf(location.blockZ))
+        return location.world.isChunkLoaded(location.blockX shr 4, location.blockZ shr 4)
     }
 
     private fun isPlayerNearby(llama: Llama): Boolean {
         val llamaLocation = llama.location
-        for (player in plugin.server.onlinePlayers) {
-            if (player.world !== llamaLocation.world) continue
-            if (abs(player.x - llamaLocation.x) > LLAMA_PLAYER_RANGE_BLOCKS) continue
-            if (abs(player.y - llamaLocation.y) > LLAMA_PLAYER_RANGE_BLOCKS) continue
-            if (abs(player.z - llamaLocation.z) > LLAMA_PLAYER_RANGE_BLOCKS) continue
-            return true
+        val world = llamaLocation.world ?: return false
+        val squaredMax = LLAMA_PLAYER_RANGE_BLOCKS * LLAMA_PLAYER_RANGE_BLOCKS
+
+        for (player in world.players) {
+            if (player.location.distanceSquared(llamaLocation) <= squaredMax) {
+                return true
+            }
         }
         return false
     }

@@ -136,6 +136,8 @@ class CopperOxidationListener(
                 try {
                     val rx = random.nextInt(minX, maxX + 1)
                     val rz = random.nextInt(minZ, maxZ + 1)
+                    if (!world.isChunkLoaded(rx shr 4, rz shr 4)) return@repeat
+
                     val ry = random.nextInt(minY, maxY + 1)
 
                     val block = world.getBlockAt(rx, ry, rz)
@@ -225,8 +227,8 @@ class CopperOxidationListener(
     private fun isUnderRain(block: Block): Boolean {
         val world = block.world
 
-        // Check if it's raining/storming
-        if (!world.hasStorm()) {
+        // Check if it's raining/storming or chunk not loaded
+        if (!world.hasStorm() || !world.isChunkLoaded(block.x shr 4, block.z shr 4)) {
             return false
         }
 

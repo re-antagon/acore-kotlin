@@ -233,7 +233,7 @@ class StonecutterBlockProcessorListener(
         }
     }
 
-    data class BlockProcessorCraft(
+    class BlockProcessorCraft(
         val name: String,
         val inputMaterial: Material?,
         val inputTag: NamespacedKey?,
@@ -242,26 +242,29 @@ class StonecutterBlockProcessorListener(
         val resultName: String,
         val resultAmount: Int
     ) {
-        fun matchesMaterial(material: Material): Boolean {
+        private val matchedMaterials: Set<Material> = resolveMatchedMaterials()
+
+        private fun resolveMatchedMaterials(): Set<Material> {
             if (inputMaterial != null) {
-                return material == inputMaterial
+                return setOf(inputMaterial)
             }
             if (inputTag != null) {
-                return isMaterialInTag(material, inputTag)
+                val materials = mutableSetOf<Material>()
+                val itemTag = Bukkit.getTag(Tag.REGISTRY_ITEMS, inputTag, Material::class.java)
+                if (itemTag != null) {
+                    materials.addAll(itemTag.values)
+                }
+                val blockTag = Bukkit.getTag(Tag.REGISTRY_BLOCKS, inputTag, Material::class.java)
+                if (blockTag != null) {
+                    materials.addAll(blockTag.values)
+                }
+                return materials
             }
-            return false
+            return emptySet()
         }
 
-        private fun isMaterialInTag(material: Material, tagKey: NamespacedKey): Boolean {
-            val itemTag = Bukkit.getTag(Tag.REGISTRY_ITEMS, tagKey, Material::class.java)
-            if (itemTag != null && itemTag.isTagged(material)) {
-                return true
-            }
-            val blockTag = Bukkit.getTag(Tag.REGISTRY_BLOCKS, tagKey, Material::class.java)
-            if (blockTag != null && blockTag.isTagged(material)) {
-                return true
-            }
-            return false
+        fun matchesMaterial(material: Material): Boolean {
+            return matchedMaterials.contains(material)
         }
     }
 

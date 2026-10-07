@@ -42,7 +42,6 @@ dependencies {
         exclude(group = "org.bukkit", module = "craftbukkit")
     }
     implementation(kotlin("stdlib"))
-    implementation("org.reflections:reflections:0.10.2")
 }
 
 tasks.processResources {

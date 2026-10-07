@@ -1,11 +1,35 @@
 package org.antagon.acore.core
 
 import org.antagon.acore.Acore
+import org.antagon.acore.feature.anvil.AnvilFallListener
+import org.antagon.acore.feature.anvil.PistonLaunchAnvilListener
+import org.antagon.acore.feature.blocks.BlockBurnListener
+import org.antagon.acore.feature.blocks.CopperOxidationListener
+import org.antagon.acore.feature.blocks.LightningConversionListener
+import org.antagon.acore.feature.blocks.SoulSoilTillListener
+import org.antagon.acore.feature.blocks.StonecutterBlockProcessorListener
+import org.antagon.acore.feature.coreprotect.CoreProtectVisualizerListener
+import org.antagon.acore.feature.economy.CoinTransferFeeListener
+import org.antagon.acore.feature.entity.EntityKillListener
+import org.antagon.acore.feature.entity.VillagerTransportListener
+import org.antagon.acore.feature.items.BannerHeadListener
+import org.antagon.acore.feature.items.ItemFrameListener
+import org.antagon.acore.feature.items.MinecartSpeedListener
+import org.antagon.acore.feature.items.MinecartDamageListener
+import org.antagon.acore.feature.items.MultishotCrossbowListener
+import org.antagon.acore.feature.leash.LeashPlayersModule
+import org.antagon.acore.feature.physicsgun.PhysicsGunModule
+import org.antagon.acore.feature.player.BlockInteractionListener
+import org.antagon.acore.feature.player.FogPotionListener
+import org.antagon.acore.feature.player.IndicatorPotionListener
+import org.antagon.acore.feature.player.PlayerJoinListener
+import org.antagon.acore.feature.player.SessionDataListener
+import org.antagon.acore.feature.player.XaeroFairPlayListener
+import org.antagon.acore.feature.referral.ReferralListener
+import org.antagon.acore.feature.streak.StreakListener
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.plugin.Plugin
-import org.reflections.Reflections
-import org.reflections.scanners.Scanners
 
 interface AcoreModule {
 
@@ -41,27 +65,56 @@ interface AcoreModule {
     }
 
     companion object {
-        private val reflections = Reflections("org.antagon.acore.feature")
         private val loadedModules = mutableListOf<AcoreModule>()
 
         /**
-         * Unregisters existing event listeners and auto-discovers/enables modules via reflection.
+         * List of all available module factories.
+         */
+        private val moduleFactories: List<() -> AcoreModule> = listOf(
+            { AnvilFallListener() },
+            { PistonLaunchAnvilListener() },
+            { BlockBurnListener() },
+            { CopperOxidationListener() },
+            { LightningConversionListener() },
+            { SoulSoilTillListener() },
+            { StonecutterBlockProcessorListener() },
+            { CoreProtectVisualizerListener() },
+            { CoinTransferFeeListener() },
+            { EntityKillListener() },
+            { VillagerTransportListener() },
+            { BannerHeadListener() },
+            { ItemFrameListener() },
+            { MinecartSpeedListener() },
+            { MinecartDamageListener() },
+            { MultishotCrossbowListener() },
+            { LeashPlayersModule() },
+            { PhysicsGunModule() },
+            { BlockInteractionListener() },
+            { FogPotionListener() },
+            { IndicatorPotionListener() },
+            { PlayerJoinListener() },
+            { SessionDataListener() },
+            { XaeroFairPlayListener() },
+            { ReferralListener() },
+            { StreakListener() }
+        )
+
+        /**
+         * Unregisters existing event listeners and enables modules.
          */
         fun reloadModules(plugin: Acore) {
             disableAll(plugin)
 
-            val subTypes = reflections.getSubTypesOf(AcoreModule::class.java)
-
-            for (clazz in subTypes) {
+            for (factory in moduleFactories) {
                 try {
-                    val instance = clazz.getDeclaredConstructor().newInstance() as AcoreModule
+                    val instance = factory()
                     if (instance.shouldEnable()) {
                         instance.enable()
                         loadedModules.add(instance)
                         plugin.logger.info("${instance.name} feature enabled")
                     }
                 } catch (e: Exception) {
-                    plugin.logger.warning("Failed to load module ${clazz.simpleName}: ${e.message}")
+                    plugin.logger.warning("Failed to load module: ${e.message}")
                 }
             }
         }

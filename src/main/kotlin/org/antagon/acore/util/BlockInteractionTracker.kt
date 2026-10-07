@@ -2,7 +2,6 @@ package org.antagon.acore.util
 
 import org.bukkit.Location
 import org.bukkit.entity.Player
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 enum class InteractionType {
@@ -13,16 +12,16 @@ enum class InteractionType {
 
 // Tracks player interactions with blocks in specific areas
 class BlockInteractionTracker private constructor() {
-    // Map of location -> list of player interactions (timestamp + player name) - ALL interactions
-    private val interactions: MutableMap<Location, MutableList<PlayerInteraction>> = ConcurrentHashMap()
+    // Map of position -> list of player interactions (timestamp + player name) - ALL interactions
+    private val interactions: MutableMap<BlockPos, MutableList<PlayerInteraction>> = ConcurrentHashMap()
     
     // Separate maps for different interaction types
-    private val blockPlaces: MutableMap<Location, MutableList<PlayerInteraction>> = ConcurrentHashMap()
-    private val blockBreaks: MutableMap<Location, MutableList<PlayerInteraction>> = ConcurrentHashMap()
-    private val blockInteracts: MutableMap<Location, MutableList<PlayerInteraction>> = ConcurrentHashMap()
+    private val blockPlaces: MutableMap<BlockPos, MutableList<PlayerInteraction>> = ConcurrentHashMap()
+    private val blockBreaks: MutableMap<BlockPos, MutableList<PlayerInteraction>> = ConcurrentHashMap()
+    private val blockInteracts: MutableMap<BlockPos, MutableList<PlayerInteraction>> = ConcurrentHashMap()
 
-    // Map of location -> last use timestamp for cooldowns
-    private val cooldowns: MutableMap<Location, Long> = ConcurrentHashMap()
+    // Map of position -> last use timestamp for cooldowns
+    private val cooldowns: MutableMap<BlockPos, Long> = ConcurrentHashMap()
 
     // Map of player UUID -> last use timestamp for player cooldowns
     private val playerCooldowns: MutableMap<String, Long> = ConcurrentHashMap()
@@ -40,7 +39,7 @@ class BlockInteractionTracker private constructor() {
 
     // Records a player interaction with a block
     fun recordInteraction(player: Player, location: Location, type: InteractionType) {
-        val key = roundLocation(location)
+        val key = BlockPos.from(location)
         val timestamp = System.currentTimeMillis()
         
         // Record in general interactions map (for backward compatibility)
@@ -51,28 +50,15 @@ class BlockInteractionTracker private constructor() {
         }
         
         // Record in specific type map
-        when (type) {
-            InteractionType.PLACE -> {
-                val placeList = blockPlaces.computeIfAbsent(key) { mutableListOf() }
-                placeList.add(PlayerInteraction(player.name, timestamp))
-                if (placeList.size > 10) {
-                    placeList.removeAt(0)
-                }
-            }
-            InteractionType.BREAK -> {
-                val breakList = blockBreaks.computeIfAbsent(key) { mutableListOf() }
-                breakList.add(PlayerInteraction(player.name, timestamp))
-                if (breakList.size > 10) {
-                    breakList.removeAt(0)
-                }
-            }
-            InteractionType.INTERACT -> {
-                val interactList = blockInteracts.computeIfAbsent(key) { mutableListOf() }
-                interactList.add(PlayerInteraction(player.name, timestamp))
-                if (interactList.size > 10) {
-                    interactList.removeAt(0)
-                }
-            }
+        val targetMap = when (type) {
+            InteractionType.PLACE -> blockPlaces
+            InteractionType.BREAK -> blockBreaks
+            InteractionType.INTERACT -> blockInteracts
+        }
+        val typeList = targetMap.computeIfAbsent(key) { mutableListOf() }
+        typeList.add(PlayerInteraction(player.name, timestamp))
+        if (typeList.size > 10) {
+            typeList.removeAt(0)
         }
     }
 
@@ -103,19 +89,19 @@ class BlockInteractionTracker private constructor() {
 
     // Helper method to get players from a specific interaction map within radius and time
     private fun getPlayersInRadius(
-        interactionMap: Map<Location, MutableList<PlayerInteraction>>,
+        interactionMap: Map<BlockPos, MutableList<PlayerInteraction>>,
         center: Location,
         radius: Int,
         timeHours: Int
     ): List<String> {
-        val centerKey = roundLocation(center)
+        val centerKey = BlockPos.from(center)
         val players = mutableSetOf<String>()
 
         val cutoffTime = System.currentTimeMillis() - (timeHours * 60 * 60 * 1000L)
 
         // Check all locations within radius
-        for ((interactionLocation, locationInteractions) in interactionMap) {
-            if (isWithinRadius(centerKey, interactionLocation, radius)) {
+        for ((pos, locationInteractions) in interactionMap) {
+            if (centerKey.isWithinRadius(pos, radius)) {
                 for (interaction in locationInteractions) {
                     // Only include interactions within time limit
                     if (interaction.timestamp >= cutoffTime) {
@@ -130,12 +116,8 @@ class BlockInteractionTracker private constructor() {
 
     // Checks if a location is on cooldown
     fun isOnCooldown(location: Location, cooldownSeconds: Int): Boolean {
-        val key = roundLocation(location)
-        val lastUse = cooldowns[key]
-
-        if (lastUse == null) {
-            return false
-        }
+        val key = BlockPos.from(location)
+        val lastUse = cooldowns[key] ?: return false
 
         val timeSinceLastUse = (System.currentTimeMillis() - lastUse) / 1000
         return timeSinceLastUse < cooldownSeconds
@@ -143,12 +125,8 @@ class BlockInteractionTracker private constructor() {
 
     // Gets remaining cooldown time in seconds for a location
     fun getRemainingCooldown(location: Location, cooldownSeconds: Int): Int {
-        val key = roundLocation(location)
-        val lastUse = cooldowns[key]
-
-        if (lastUse == null) {
-            return 0
-        }
+        val key = BlockPos.from(location)
+        val lastUse = cooldowns[key] ?: return 0
 
         val timeSinceLastUse = (System.currentTimeMillis() - lastUse) / 1000
         val remaining = cooldownSeconds - timeSinceLastUse
@@ -158,29 +136,25 @@ class BlockInteractionTracker private constructor() {
 
     // Sets cooldown for a location
     fun setCooldown(location: Location) {
-        val key = roundLocation(location)
+        val key = BlockPos.from(location)
         cooldowns[key] = System.currentTimeMillis()
     }
 
     // Force removes cooldown for a location (for testing purposes)
     fun removeCooldown(location: Location) {
-        val key = roundLocation(location)
+        val key = BlockPos.from(location)
         cooldowns.remove(key)
     }
 
     // Gets all cooldown locations (for debugging)
-    fun getAllCooldowns(): Map<Location, Long> {
+    fun getAllCooldowns(): Map<BlockPos, Long> {
         return ConcurrentHashMap(cooldowns)
     }
 
     // Checks if a player is on cooldown
     fun isPlayerOnCooldown(player: Player, cooldownSeconds: Int): Boolean {
         val playerUUID = player.uniqueId.toString()
-        val lastUse = playerCooldowns[playerUUID]
-
-        if (lastUse == null) {
-            return false
-        }
+        val lastUse = playerCooldowns[playerUUID] ?: return false
 
         val timeSinceLastUse = (System.currentTimeMillis() - lastUse) / 1000
         return timeSinceLastUse < cooldownSeconds
@@ -189,11 +163,7 @@ class BlockInteractionTracker private constructor() {
     // Gets remaining cooldown time in seconds for a player
     fun getPlayerRemainingCooldown(player: Player, cooldownSeconds: Int): Int {
         val playerUUID = player.uniqueId.toString()
-        val lastUse = playerCooldowns[playerUUID]
-
-        if (lastUse == null) {
-            return 0
-        }
+        val lastUse = playerCooldowns[playerUUID] ?: return 0
 
         val timeSinceLastUse = (System.currentTimeMillis() - lastUse) / 1000
         val remaining = cooldownSeconds - timeSinceLastUse
@@ -212,40 +182,9 @@ class BlockInteractionTracker private constructor() {
         return ConcurrentHashMap(playerCooldowns)
     }
 
-    // Rounds location to block coordinates for consistent tracking
-    private fun roundLocation(location: Location): Location {
-        return Location(
-            location.world,
-            location.blockX.toDouble(),
-            location.blockY.toDouble(),
-            location.blockZ.toDouble()
-        )
-    }
-
-    // Gets the exact location key for debugging purposes
-    fun getLocationKey(location: Location): Location {
-        return roundLocation(location)
-    }
-
-    // Checks if two locations are within specified radius
-    private fun isWithinRadius(center: Location, location: Location, radius: Int): Boolean {
-        if (center.world != location.world) {
-            return false
-        }
-
-        val distance = center.distance(location)
-        return distance <= radius
-    }
-
-    // Checks if two locations are the same (for exact location matching)
-    private fun isSameLocation(loc1: Location, loc2: Location): Boolean {
-        if (loc1.world != loc2.world) {
-            return false
-        }
-
-        return loc1.blockX == loc2.blockX &&
-               loc1.blockY == loc2.blockY &&
-               loc1.blockZ == loc2.blockZ
+    // Gets the exact position key for debugging purposes
+    fun getLocationKey(location: Location): BlockPos {
+        return BlockPos.from(location)
     }
 
     // Represents a player interaction with a block
