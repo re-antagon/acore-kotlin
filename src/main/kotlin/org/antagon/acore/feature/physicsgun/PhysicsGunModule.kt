@@ -18,6 +18,7 @@ import org.bukkit.event.block.Action
 import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.entity.EntityDismountEvent
 import org.bukkit.event.entity.PlayerDeathEvent
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent
 import org.bukkit.event.player.PlayerChangedWorldEvent
 import org.bukkit.event.player.PlayerDropItemEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
@@ -31,6 +32,7 @@ import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.plugin.Plugin
 import org.bukkit.scheduler.BukkitTask
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Logger
 
 data class OfflineTeleportRecord(
@@ -126,6 +128,8 @@ class PhysicsGunModule(
     private val logger = Logger.getLogger(PhysicsGunModule::class.java.name)
 
     val offlineTeleportDao = OfflineTeleportDao(Acore.instance.databaseManager)
+    // filled off the main thread in onPreLogin, consumed in onJoin
+    private val preloadedTeleports = ConcurrentHashMap<UUID, OfflineTeleportRecord>()
     val gunItemService = GunItemService(plugin, configManager)
     val fakeVehicleService = FakeVehicleService(plugin)
     val grabManager = GrabManager(this)
@@ -264,17 +268,31 @@ class PhysicsGunModule(
         grabManager.handleQuit(event.player.uniqueId)
     }
 
+    // runs on an async thread
+    @EventHandler(priority = EventPriority.MONITOR)
+    fun onPreLogin(event: AsyncPlayerPreLoginEvent) {
+        if (event.loginResult != AsyncPlayerPreLoginEvent.Result.ALLOWED) return
+        val record = offlineTeleportDao.get(event.uniqueId)
+        if (record != null) {
+            preloadedTeleports[event.uniqueId] = record
+        } else {
+            preloadedTeleports.remove(event.uniqueId)
+        }
+    }
+
     // relogging held players are re-captured (persistent-held). Packets and
     // teleports are sent with a small delay so the client has finished world init first
     @EventHandler(priority = EventPriority.MONITOR)
     fun onJoin(event: PlayerJoinEvent) {
         val player = event.player
-        val pending = offlineTeleportDao.get(player.uniqueId)
+        val pending = preloadedTeleports.remove(player.uniqueId)
         if (pending != null) {
             // the record is deleted only once the teleport actually runs
             Bukkit.getScheduler().runTaskLater(plugin, Runnable {
                 if (player.isOnline) {
-                    offlineTeleportDao.delete(player.uniqueId)
+                    Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
+                        offlineTeleportDao.delete(player.uniqueId)
+                    })
                     val targetWorld = Bukkit.getWorld(pending.world) ?: player.world
                     val loc = org.bukkit.Location(targetWorld, pending.x, pending.y, pending.z, pending.yaw, pending.pitch)
                     grabManager.markInternalTeleport(player.uniqueId)
