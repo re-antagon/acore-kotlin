@@ -63,6 +63,8 @@ class XaeroFairPlayListener(
         }
 
         registerEvents(plugin)
+
+        plugin.server.onlinePlayers.forEach { handlePlayer(it) }
     }
 
     override fun disable() {
