@@ -271,9 +271,10 @@ class PhysicsGunModule(
         val player = event.player
         val pending = offlineTeleportDao.get(player.uniqueId)
         if (pending != null) {
-            offlineTeleportDao.delete(player.uniqueId)
+            // the record is deleted only once the teleport actually runs
             Bukkit.getScheduler().runTaskLater(plugin, Runnable {
                 if (player.isOnline) {
+                    offlineTeleportDao.delete(player.uniqueId)
                     val targetWorld = Bukkit.getWorld(pending.world) ?: player.world
                     val loc = org.bukkit.Location(targetWorld, pending.x, pending.y, pending.z, pending.yaw, pending.pitch)
                     grabManager.markInternalTeleport(player.uniqueId)
