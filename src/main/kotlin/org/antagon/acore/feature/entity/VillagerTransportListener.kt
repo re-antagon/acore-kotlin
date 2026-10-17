@@ -3,7 +3,6 @@ package org.antagon.acore.feature.entity
 import org.antagon.acore.Acore
 import org.antagon.acore.core.ConfigManager
 import org.antagon.acore.core.AcoreModule
-import org.bukkit.Chunk
 import org.bukkit.Tag
 import org.bukkit.entity.Camel
 import org.bukkit.entity.Entity
@@ -15,8 +14,8 @@ import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntitySpawnEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.vehicle.VehicleEnterEvent
-import org.bukkit.event.world.ChunkLoadEvent
-import org.bukkit.event.world.ChunkUnloadEvent
+import org.bukkit.event.world.EntitiesLoadEvent
+import org.bukkit.event.world.EntitiesUnloadEvent
 import org.bukkit.scheduler.BukkitRunnable
 import org.bukkit.scheduler.BukkitTask
 import java.util.logging.Logger
@@ -129,14 +128,15 @@ class VillagerTransportListener(
 
     private fun seedRegistryFromLoadedChunks() {
         for (world in plugin.server.worlds) {
-            for (chunk in world.loadedChunks) {
-                indexChunk(chunk)
-            }
+            knownLlamas.addAll(world.getEntitiesByClass(Llama::class.java))
         }
     }
 
-    private fun indexChunk(chunk: Chunk) {
-        for (entity in chunk.entities) {
+    @EventHandler
+    fun onEntitiesLoad(event: EntitiesLoadEvent) {
+        if (!allowLlamaTransport) return
+
+        for (entity in event.entities) {
             if (entity is Llama) {
                 knownLlamas.add(entity)
             }
@@ -144,16 +144,10 @@ class VillagerTransportListener(
     }
 
     @EventHandler
-    fun onChunkLoad(event: ChunkLoadEvent) {
-        if (!allowLlamaTransport) return
-        indexChunk(event.chunk)
-    }
-
-    @EventHandler
-    fun onChunkUnload(event: ChunkUnloadEvent) {
+    fun onEntitiesUnload(event: EntitiesUnloadEvent) {
         if (!allowLlamaTransport || knownLlamas.isEmpty()) return
 
-        for (entity in event.chunk.entities) {
+        for (entity in event.entities) {
             if (entity is Llama) {
                 knownLlamas.remove(entity)
             }
