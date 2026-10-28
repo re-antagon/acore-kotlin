@@ -10,6 +10,7 @@ import org.antagon.acore.feature.grab.GrabTickTask
 import org.antagon.acore.util.DependencyHandler
 import org.bukkit.FluidCollisionMode
 import org.bukkit.Bukkit
+import org.bukkit.Location
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -294,7 +295,7 @@ class PhysicsGunModule(
                         offlineTeleportDao.delete(player.uniqueId)
                     })
                     val targetWorld = Bukkit.getWorld(pending.world) ?: player.world
-                    val loc = org.bukkit.Location(targetWorld, pending.x, pending.y, pending.z, pending.yaw, pending.pitch)
+                    val loc = Location(targetWorld, pending.x, pending.y, pending.z, pending.yaw, pending.pitch)
                     grabManager.markInternalTeleport(player.uniqueId)
                     try {
                         player.teleport(loc)

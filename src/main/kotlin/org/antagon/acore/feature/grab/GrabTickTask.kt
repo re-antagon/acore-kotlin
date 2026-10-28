@@ -1,7 +1,6 @@
 package org.antagon.acore.feature.grab
 
 import org.antagon.acore.core.ConfigManager
-import org.antagon.acore.feature.physicsgun.OfflineTeleportRecord
 import org.antagon.acore.feature.physicsgun.PhysicsGunModule
 import org.bukkit.Bukkit
 import org.bukkit.Particle
