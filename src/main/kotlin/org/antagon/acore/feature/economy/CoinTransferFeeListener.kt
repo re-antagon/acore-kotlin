@@ -81,7 +81,7 @@ class CoinTransferFeeListener(
         val amountStr = parts[amountIndex]
 
         val amount = amountStr.toDoubleOrNull()
-        if (amount == null || amount <= 0.0) {
+        if (amount == null || !amount.isFinite() || amount <= 0.0) {
             return
         }
 
