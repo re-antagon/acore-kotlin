@@ -106,8 +106,9 @@ class PacketEventsLeashVisualManager(
         val holderEntity = link.holder.resolveEntity() ?: return emptySet()
         if (holderEntity.world.uid != target.world.uid) return emptySet()
 
+        val candidates = if (visualRadius <= 0.0) target.world.players else target.world.getNearbyPlayers(target.location, visualRadius)
         return buildSet {
-            for (viewer in target.world.players) {
+            for (viewer in candidates) {
                 if (shouldViewerSee(viewer, link)) {
                     add(viewer.uniqueId)
                 }
