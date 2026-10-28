@@ -52,6 +52,13 @@ class StonecutterBlockProcessorListener(
         loadCrafts()
     }
 
+    /**
+     * Loads and parses stonecutter craft recipes from the configuration.
+     *
+     * Clears existing crafts and parses each configured recipe section for input
+     * specifications (material or item tag along with input quantity) and result
+     * specifications (vanilla material or MythicMobs item along with output quantity).
+     */
     private fun loadCrafts() {
         crafts.clear()
         val section = config.getSection("stonecutterBlockProcessor.crafts") ?: return
