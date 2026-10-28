@@ -6,6 +6,7 @@ import org.antagon.acore.core.AcoreModule
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.Sound
+import org.bukkit.Tag
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.block.data.Waterlogged
@@ -243,8 +244,7 @@ class CopperOxidationListener(
             val type = aboveBlock.type
 
             // Consider solid blocks as blocking rain (except transparent ones)
-            val typeName = type.name
-            if (type.isSolid && !typeName.contains("LEAVES")) {
+            if (type.isSolid && !Tag.LEAVES.isTagged(type)) {
                 return false
             }
             y++

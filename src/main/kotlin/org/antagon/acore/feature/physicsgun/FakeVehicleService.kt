@@ -274,13 +274,10 @@ class FakeVehicleService(
     fun syncViewers(session: GrabSession, heldEntityId: Int) {
         val world = session.world
         val pos = session.currentPos
-        val radiusSquared = visibilityRadius * visibilityRadius
 
         val wanted = HashSet<UUID>()
-        for (p in world.players) {
-            if (p.location.distanceSquared(pos.toLocation(world)) <= radiusSquared) {
-                wanted.add(p.uniqueId)
-            }
+        for (p in world.getNearbyPlayers(pos.toLocation(world), visibilityRadius)) {
+            wanted.add(p.uniqueId)
         }
         if (session.heldOfflineSince == null) {
             wanted.add(session.heldId)
