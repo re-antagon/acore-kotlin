@@ -236,7 +236,7 @@ class StreakManager(
             data.lastLoginDate = today
             data.isDirty = true
         } else if (lastLogin == today) {
-            // Re-login within the same calendar day
+            // Re-login within the same calendar day; no streak update or login count increment is needed
         } else if (lastLogin == today.minusDays(1)) {
             // Perfect consecutive day login
             data.currentStreak += 1
