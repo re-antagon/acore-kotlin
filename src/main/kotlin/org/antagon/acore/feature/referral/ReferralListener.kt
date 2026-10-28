@@ -554,7 +554,13 @@ class ReferralListener(
     }
 
     private fun giveReward(player: Player, amount: Int) {
-        val command = "antacoin give ${player.name} $amount"
+        val name = player.name
+        val sanitizedName = name.filter { it.isLetterOrDigit() || it == '_' || it == '.' || it == '-' }
+        if (sanitizedName.isEmpty() || sanitizedName != name) {
+            plugin.logger.warning("Aborting reward execution: Player name '$name' contains unsafe characters.")
+            return
+        }
+        val command = "antacoin give $sanitizedName $amount"
         plugin.server.dispatchCommand(plugin.server.consoleSender, command)
     }
 
