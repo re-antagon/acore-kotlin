@@ -4,15 +4,15 @@ plugins {
 }
 
 group = "org.antagon"
-version = "1.5"
+version = "1.6"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
 }
 
 repositories {
@@ -27,14 +27,12 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
-    compileOnly("com.github.retrooper:packetevents-spigot:2.13.0")   // PacketEvents API
+    compileOnly("io.papermc.paper:paper-api:26.3.build.242-stable")
+    compileOnly("com.github.retrooper:packetevents-spigot:2.14.0")   // PacketEvents API
     compileOnly("net.coreprotect:coreprotect:22.4")                  // CoreProtect API
     compileOnly("com.github.ajneb97:ConditionalEvents:4.65.1")       // Conditional Events api
     compileOnly("io.lumine:Mythic-Dist:5.9.5")                       // Mythic Mobs api
     compileOnly("net.luckperms:api:5.4")                             // LuckPerms api
-    compileOnly("net.kyori:adventure-api:4.26.1")                    // Adventure API
-    compileOnly("net.kyori:adventure-text-minimessage:4.26.1")       // Adventure Text MiniMessage
     compileOnly("me.clip:placeholderapi:2.11.6")                    // PlaceholderAPI
     compileOnly("org.xerial:sqlite-jdbc:3.49.1.0")                   // SQLite JDBC API
     compileOnly("com.github.MilkBowl:VaultAPI:1.7") {                // Vault api

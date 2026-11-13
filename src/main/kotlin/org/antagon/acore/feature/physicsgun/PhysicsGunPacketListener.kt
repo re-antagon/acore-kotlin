@@ -4,12 +4,12 @@ import com.github.retrooper.packetevents.event.PacketListenerAbstract
 import com.github.retrooper.packetevents.event.PacketReceiveEvent
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerInput
 
 // Defensive incoming-packet handling for held players.
 // The held player's client believes it is riding the fake vehicle:
-//  - pressing sneak would normally produce a dismount ([WrapperPlayClientEntityAction]
-//    START/STOP_SNEAKING) - those packets are cancelled so the server never
-//    processes a sneak/dismount state change while held;
+//  - sneak and jump inputs are cleared in PLAYER_INPUT so the server does not
+//    process a dismount or jump while held. Other input flags are preserved.
 //  - position-bearing movement packets are cancelled, because the only
 //    legitimate source of the held player's server-side position while held
 //    is the grab tick task. This prevents rubber-bands and move-check
@@ -26,6 +26,14 @@ class PhysicsGunPacketListener(
         val uuid = event.user.uuid
 
         when (event.packetType) {
+            PacketType.Play.Client.PLAYER_INPUT -> {
+                if (!grabManager.isHeld(uuid)) return
+                val wrapper = WrapperPlayClientPlayerInput(event)
+                wrapper.isShift = false
+                wrapper.isJump = false
+                event.markForReEncode(true)
+            }
+
             PacketType.Play.Client.ENTITY_ACTION -> {
                 if (!grabManager.isHeld(uuid)) return
                 val wrapper = WrapperPlayClientEntityAction(event)

@@ -14,12 +14,16 @@ class MissingDependencyException(
 object DependencyHandler {
     private val defaultLogger = Logger.getLogger(DependencyHandler::class.java.name)
 
+    // PacketEvents uses a lowercase plugin name in its descriptor.
+    private fun registeredName(pluginName: String): String =
+        if (pluginName.equals("packetevents", ignoreCase = true)) "packetevents" else pluginName
+
     /**
      * Checks if a plugin dependency is present and enabled on the server.
      */
     fun isPluginEnabled(pluginName: String): Boolean {
         return try {
-            Bukkit.getPluginManager().isPluginEnabled(pluginName)
+            Bukkit.getPluginManager().isPluginEnabled(registeredName(pluginName))
         } catch (e: Throwable) {
             false
         }
@@ -30,7 +34,7 @@ object DependencyHandler {
      */
     fun isPluginInstalled(pluginName: String): Boolean {
         return try {
-            Bukkit.getPluginManager().getPlugin(pluginName) != null
+            Bukkit.getPluginManager().getPlugin(registeredName(pluginName)) != null
         } catch (e: Throwable) {
             false
         }

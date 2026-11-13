@@ -4,10 +4,10 @@ main: org.antagon.acore.Acore
 description: Multi-purpose plugin for Antagon:Reborn server
 version: '${version}'
 prefix: acore
-api-version: '1.21'
+api-version: '26.3'
 website: https://reborn.antagon.su
 
-softdepend: [LuckPerms, ConditionalEvents, MythicMobs, PacketEvents, CoreProtect, CoinsEngine, Vault, PlaceholderAPI]
+softdepend: [LuckPerms, ConditionalEvents, MythicMobs, packetevents, CoreProtect, CoinsEngine, Vault, PlaceholderAPI]
 
 libraries:
   - org.jetbrains.kotlin:kotlin-stdlib:2.3.0

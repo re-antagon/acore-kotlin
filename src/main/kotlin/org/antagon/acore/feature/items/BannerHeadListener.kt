@@ -60,7 +60,7 @@ class BannerHeadListener(
                             if (newHelmet.amount > 1) {
                                 val singleHelmet = newHelmet.clone()
                                 singleHelmet.amount = 1
-                                player.inventory.helmet = singleHelmet
+                                player.inventory.setHelmet(singleHelmet)
 
                                 val remaining = newHelmet.clone()
                                 remaining.amount = newHelmet.amount - 1
@@ -75,11 +75,11 @@ class BannerHeadListener(
                                     player.inventory.setItem(hotbarSlot, remaining)
                                 }
                             } else {
-                                player.inventory.helmet = newHelmet
+                                player.inventory.setHelmet(newHelmet)
                                 player.inventory.setItem(hotbarSlot, if (clickedItem != null && clickedItem.type != Material.AIR) clickedItem.clone() else ItemStack(Material.AIR))
                             }
                         } else {
-                            player.inventory.helmet = ItemStack(Material.AIR)
+                            player.inventory.setHelmet(ItemStack(Material.AIR))
                             player.inventory.setItem(hotbarSlot, if (clickedItem != null && clickedItem.type != Material.AIR) clickedItem.clone() else ItemStack(Material.AIR))
                         }
                         event.isCancelled = true
@@ -91,7 +91,7 @@ class BannerHeadListener(
 
             if (isBanner(clickedItem) && event.isShiftClick) {
                 val toMove = clickedItem!!.clone()
-                player.inventory.helmet = ItemStack(Material.AIR)
+                player.inventory.setHelmet(ItemStack(Material.AIR))
                 event.currentItem = ItemStack(Material.AIR)
                 val leftover = player.inventory.addItem(toMove)
                 for (item in leftover.values) {
@@ -108,7 +108,7 @@ class BannerHeadListener(
 
                 if (cursor.amount == 1) {
                     val newHelmet = cursor.clone()
-                    player.inventory.helmet = newHelmet
+                    player.inventory.setHelmet(newHelmet)
                     event.currentItem = newHelmet
                     if (current != null && current.type != Material.AIR) {
                         event.view.setCursor(current.clone())
@@ -118,7 +118,7 @@ class BannerHeadListener(
                 } else {
                     val singleBanner = cursor.clone()
                     singleBanner.amount = 1
-                    player.inventory.helmet = singleBanner
+                    player.inventory.setHelmet(singleBanner)
                     event.currentItem = singleBanner
 
                     val remainingCursor = cursor.clone()
@@ -141,7 +141,7 @@ class BannerHeadListener(
                 val current = clickedItem!!
                 if (cursorItem.type == Material.AIR) {
                     event.view.setCursor(current.clone())
-                    player.inventory.helmet = ItemStack(Material.AIR)
+                    player.inventory.setHelmet(ItemStack(Material.AIR))
                     event.currentItem = ItemStack(Material.AIR)
                     event.isCancelled = true
                     player.updateInventory()
@@ -154,13 +154,13 @@ class BannerHeadListener(
 
                     if (cursorItem.amount == 1) {
                         val newHelmet = cursorItem.clone()
-                        player.inventory.helmet = newHelmet
+                        player.inventory.setHelmet(newHelmet)
                         event.currentItem = newHelmet
                         event.view.setCursor(current.clone())
                     } else {
                         val newHelmet = cursorItem.clone()
                         newHelmet.amount = 1
-                        player.inventory.helmet = newHelmet
+                        player.inventory.setHelmet(newHelmet)
                         event.currentItem = newHelmet
 
                         val remainingCursor = cursorItem.clone()
@@ -192,12 +192,12 @@ class BannerHeadListener(
                 if (currentHelmet == null || currentHelmet.type == Material.AIR) {
                     val bannerStack = clickedItem!!.clone()
                     if (bannerStack.amount == 1) {
-                        player.inventory.helmet = bannerStack
+                        player.inventory.setHelmet(bannerStack)
                         event.currentItem = ItemStack(Material.AIR)
                     } else {
                         val singleBanner = bannerStack.clone()
                         singleBanner.amount = 1
-                        player.inventory.helmet = singleBanner
+                        player.inventory.setHelmet(singleBanner)
 
                         val remaining = bannerStack.clone()
                         remaining.amount = bannerStack.amount - 1
