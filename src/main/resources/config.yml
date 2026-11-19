@@ -272,10 +272,10 @@ visualize:
     kill: "DARK_PURPLE"
     item: "AQUA"
 
-# Coin transfer commission feature (using CoinsEngine and NightCore)
+# Coin transfer commission feature (using ExcellentEconomy, with Vault as a fallback)
 coinTransferFee:
   enabled: true
-  # Currency ID in CoinsEngine
+  # Currency ID in ExcellentEconomy. Vault fallback uses its default currency
   currency: "antacoin"
   # Commission fee percentage (e.g. 5.0 for 5%)
   fee-percentage: 25.0
@@ -291,8 +291,8 @@ coinTransferFee:
     - "send"
     - "antacoin pay"
     - "antacoin send"
-    - "coinsengine pay"
-    - "coinsengine send"
+    - "excellenteconomy pay"
+    - "excellenteconomy send"
 
 # Daily login streaks module
 streak:

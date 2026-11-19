@@ -24,6 +24,13 @@ repositories {
     maven("https://repo.codemc.org/repository/maven-public/")
     maven("https://maven.playpro.com/")
     maven("https://repo.extendedclip.com/releases/")
+    exclusiveContent {
+        forRepository { maven("https://repo.nightexpressdev.com/releases") }
+        filter {
+            includeGroup("su.nightexpress.excellenteconomy")
+            includeGroup("su.nightexpress.nightcore")
+        }
+    }
 }
 
 dependencies {
@@ -34,6 +41,8 @@ dependencies {
     compileOnly("io.lumine:Mythic-Dist:5.9.5")                       // Mythic Mobs api
     compileOnly("net.luckperms:api:5.4")                             // LuckPerms api
     compileOnly("me.clip:placeholderapi:2.11.6")                    // PlaceholderAPI
+    compileOnly("su.nightexpress.excellenteconomy:ExcellentEconomy:2.8.0") // ExcellentEconomy api
+    compileOnly("su.nightexpress.nightcore:main:2.16.7")             // Nightcore API
     compileOnly("org.xerial:sqlite-jdbc:3.49.1.0")                   // SQLite JDBC API
     compileOnly("com.github.MilkBowl:VaultAPI:1.7") {                // Vault api
         exclude(group = "org.bukkit", module = "bukkit")
@@ -41,6 +50,7 @@ dependencies {
     }
     implementation(kotlin("stdlib"))
     implementation("org.reflections:reflections:0.10.2")
+    testImplementation(kotlin("test-junit"))
 }
 
 tasks.processResources {
